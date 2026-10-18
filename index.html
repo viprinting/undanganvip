@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undangan Pernikahan</title>
+    
+    <!-- Google Fonts untuk kesan Mewah (Serif & Sans-Serif) -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <!-- Library Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script> <!-- Translate ke Bahasa Indonesia -->
+    
+    <!-- Plugin Tombol Set/Confirm Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/confirmDate/confirmDate.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/confirmDate/confirmDate.js"></script>
+    
+    <!-- Library Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+
+    <style>
+        /* CSS RESET & VARIABLES */
+        :root {
+            --bg-color: #0A1128; /* Midnight Blue */
+            --gold-light: #F9E596;
+            --gold-main: #D4AF37;
+            --gold-dark: #AA8C2C;
+            --text-light: #F8F9FA;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            font-family: 'Lato', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh; 
+            overflow: hidden;
+            position: relative; /* Penting untuk wadah daun jatuh */
+        }
+
+        /* WADAH DAUN JATUH */
+        #leaf-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Penting agar tidak menghalangi klik tombol/link */
+            z-index: 1; /* Di atas background, di bawah konten utama */
+            overflow: hidden;
+        }
+
+        /* BENTUK & ANIMASI DAUN EMAS (Murni CSS) */
+        .leaf {
+            position: absolute;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold-main));
+            border-radius: 0 50% 0 50%; /* Membentuk siluet daun elegan */
+            opacity: 0;
+            box-shadow: 0 0 5px rgba(212, 175, 55, 0.4);
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            0% { top: -10%; opacity: 0; }
+            10% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { top: 110%; opacity: 0; }
+        }
+
+        @keyframes sway {
+            0% { transform: translateX(-20px) rotate(0deg); }
+            100% { transform: translateX(20px) rotate(180deg); }
+        }
+
+        /* CONTAINER UTAMA */
+        .invitation-card {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 20px 160px 20px; 
+            text-align: center;
+            position: relative;
+            background: rgba(10, 17, 40, 0.6); 
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            z-index: 10; /* Berada di atas daun jatuh */
+            animation: fadeIn 2s ease-in-out forwards;
+        }
+
+        .ornament {
+            font-size: 24px;
+            color: var(--gold-main);
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold-light);
+            margin-bottom: 15px;
+        }
+
+        .names {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            color: var(--gold-main);
+            line-height: 1.2;
+            margin-bottom: 30px;
+            text-shadow: 0px 2px 10px rgba(212, 175, 55, 0.2);
+        }
+
+        .details {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            color: #E0E0E0;
+        }
+
+        .details span {
+            display: block;
+            font-weight: 300;
+        }
+
+        .details .date {
+            font-weight: 400;
+            font-size: 18px;
+            color: var(--gold-light);
+            margin-bottom: 5px;
+        }
+
+        /* TOMBOL-TOMBOL */
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 80%;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 24px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-family: 'Lato', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .btn-maps {
+            background: linear-gradient(135deg, var(--gold-light), var(--gold-main));
+            color: var(--bg-color);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-maps:hover {
+            background: linear-gradient(135deg, var(--gold-main), var(--gold-dark));
+            transform: translateY(-2px);
+        }
+
+        .btn-reminder {
+            background: transparent;
+            color: var(--gold-light);
+            border: 1px solid var(--gold-main);
+        }
+
+        .btn-reminder:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        /* LOADING STATE */
+        .loading-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: var(--gold-main);
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            transition: opacity 0.5s ease;
+        }
+
+        /* MODAL (POP-UP) PENGINGAT */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* Dibuat lebih transparan (opacity 0.4) agar terlihat menembus */
+            background: rgba(0, 0, 0, 0.4); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            /* Blur dikurangi agar efek daun tidak hilang sepenuhnya */
+            backdrop-filter: blur(2px); 
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            /* Background semi-transparan dengan efek glassmorphism */
+            background: rgba(17, 29, 74, 0.75); 
+            backdrop-filter: blur(8px);
+            padding: 30px 25px; /* Padding sedikit diperlebar ke samping */
+            border-radius: 15px;
+            width: 90%;
+            /* Lebar maksimal ditambah agar format teks tanggal & waktu muat */
+            max-width: 380px; 
+            text-align: center;
+            border: 1px solid rgba(212, 175, 55, 0.5); /* Border emas sedikit diredupkan */
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-content h3 {
+            color: var(--gold-main);
+            margin-bottom: 10px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .modal-content p {
+            font-size: 13px;
+            color: #ccc;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(10, 17, 40, 0.6); 
+            color: white;
+            font-size: 14px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: center; /* Tambahkan baris ini agar semua teks input ke tengah */
+        }
+
+        .modal-content input:focus {
+            border-color: var(--gold-main);
+            background: rgba(10, 17, 40, 0.9);
+        }
+
+        .btn-submit {
+            background: var(--gold-main);
+            color: var(--bg-color);
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: #aaa;
+            width: 100%;
+            font-size: 12px;
+        }
+
+        /* Kustomisasi Tampilan Tombol "SET WAKTU" Flatpickr */
+        .flatpickr-confirm {
+            background-color: var(--gold-main) !important;
+            color: var(--bg-color) !important;
+            font-family: 'Lato', sans-serif !important;
+            font-weight: bold !important;
+            border-radius: 5px !important;
+            padding: 8px !important;
+            margin: 10px !important;
+            text-align: center !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3) !important;
+        }
+        .flatpickr-confirm:hover {
+            background-color: var(--gold-dark) !important;
+        }
+
+        /* ANIMASI */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* ====================================
+           FOOTER PERCETAKAN (DIPERBARUI)
+           ==================================== */
+        .footer-credit {
+            position: absolute;
+            bottom: 50px; /* Dinaikkan */
+            width: 100%;
+            padding: 0 40px; 
+            text-align: center;
+            z-index: 20; /* Lebih tinggi dari daun */
+        }
+
+        .footer-link-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #ccc;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .footer-link-container:hover {
+            opacity: 1;
+            color: var(--gold-light);
+            transform: translateY(-3px);
+        }
+
+        .logo-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            gap: 15px;
+        }
+
+        .logo-wrapper::before,
+        .logo-wrapper::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--gold-main));
+            opacity: 0.6;
+        }
+
+        .logo-wrapper::after {
+            background: linear-gradient(to left, transparent, var(--gold-main));
+        }
+
+       .footer-logo {
+            height: 60px; /* Ukuran diperbesar dari 35px (Silakan sesuaikan angkanya) */
+            width: auto;
+            opacity: 0.7; /* Ditambahkan agar logo menjadi agak transparan */
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); 
+            transition: transform 0.3s ease;
+        }
+
+        .footer-link-container:hover .footer-logo {
+            transform: scale(1.05); 
+        }
+
+        /* Font Size & Jarak Diperbesar */
+        .footer-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .separator {
+            color: var(--gold-main);
+            font-size: 14px;
+        }
+
+        .wa-icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            margin-top: 1px;
+        }
+
+        /* Wadah untuk memisahkan Tanggal dan Waktu (Susunan Vertikal) */
+        .datetime-container {
+            display: flex;
+            flex-direction: column; /* Mengatur arah elemen menjadi atas-bawah */
+            gap: 15px; /* Mengatur jarak antara kolom tanggal dan kolom waktu */
+            margin-bottom: 15px;
+        }
+
+        .datetime-container input {
+            margin-bottom: 0 !important; 
+            width: 100% !important; /* Membuat kolom kembali penuh dari kiri ke kanan */
+        }
+
+        /* Label mengambil sisa ruang di kiri dan kanan secara seimbang */
+        .time-label {
+            color: white;
+            font-size: 14px;
+            white-space: nowrap;
+            flex: 1; /* Membagi ruang secara proporsional */
+        }
+
+        /* Mengatur teks 'Pukul' agar rata kanan (menempel ke angka jam) */
+        .label-pukul {
+            text-align: right;
+            padding-right: 8px; 
+        }
+
+        /* Mengatur teks 'Wita' agar rata kiri (menempel ke angka jam) */
+        .label-wita {
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        /* Reset styling input jam agar tidak merusak ukuran wadah */
+        .time-input-wrapper input {
+            flex: none !important;
+            width: 100px !important; 
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important; /* Padding diubah menjadi 0 karena sudah diwakilkan oleh wadahnya */
+            margin: 0 !important;
+            text-align: center !important;
+            box-shadow: none !important;
+            color: white;
+            font-size: 14px !important; /* Ukuran font disamakan dengan tanggal */
+            font-family: 'Lato', sans-serif;
+            outline: none;
+        }
+
+        /* Mengubah warna ikon jam bawaan browser desktop menjadi putih */
+        .time-input-wrapper input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Wadah Animasi Daun Jatuh -->
+    <div id="leaf-container"></div>
+
+    <!-- Layar Loading Awal -->
+    <div class="loading-screen" id="loadingScreen">
+        Membuka Undangan...
+    </div>
+
+    <!-- Konten Undangan Utama -->
+    <div class="invitation-card" id="invitationCard" style="display: none;">
+        <div class="ornament">✧</div>
+        <div class="subtitle">The Wedding Of</div>
+        
+        <h1 class="names" id="nama-mempelai">... & ...</h1>
+        
+        <div class="details">
+            <span class="date" id="tanggal-resepsi">...</span>
+            <span id="waktu-resepsi">...</span>
+        </div>
+
+        <div class="btn-container">
+            <a href="#" class="btn btn-maps" id="btn-maps" target="_blank">Buka Google Maps</a>
+            <button class="btn btn-reminder" onclick="openModal()">Ingatkan Saya</button>
+        </div>
+
+        <!-- Footer Logo & WA Percetakan -->
+        <div class="footer-credit">
+            <a href="#" id="footer-link" target="_blank" class="footer-link-container">
+                <div class="logo-wrapper" id="logoWrapper">
+                    <img src="LOGO MUFLIH.webp" alt="Logo Percetakan" class="footer-logo" id="footerLogo">
+                </div>
+
+                <div class="footer-text">
+                    <span id="footerNamaPercetakan">Percetakan Muflih Print</span>
+                    <span class="separator">|</span>
+                    <svg class="wa-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+                    </svg>
+                    <span id="footerNoWa">081574009621</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Modal Form Pengingat WA -->
+    <div class="modal-overlay" id="reminderModal">
+        <div class="modal-content">
+            <h3>Pengingat Otomatis</h3>
+            <p>Masukkan nomor WhatsApp dan atur waktu kapan Anda ingin diingatkan tentang acara ini.</p>
+            
+            <form id="formReminder">
+                <input type="tel" id="waNumber" placeholder="Contoh: 081234567890" required pattern="[0-9]+" minlength="10">
+                <div class="datetime-container">
+                    <input type="text" id="tanggalPengingat" required placeholder="Pilih Tanggal">
+                    
+                    <!-- Kolom Waktu dengan Teks Terpisah -->
+                    <div class="time-input-wrapper">
+                        <span class="time-label label-pukul">Pukul</span>
+                        <input type="time" id="jamPengingat" required value="08:00">
+                        <span class="time-label label-wita">Wita</span>
+                    </div>
+                </div>
+                <p id="teksPemberitahuan" style="font-size: 12px; color: var(--gold-main); margin-bottom: 20px; text-align: center;"></p>
+                <button type="submit" class="btn btn-submit" id="btnSubmitForm">Simpan Nomor</button>
+                <button type="button" class="btn btn-cancel" onclick="closeModal()">Batal</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // FITUR DAUN JATUH (GENERATOR JS)
+        // ==========================================
+        function createFallingLeaves() {
+            const container = document.getElementById('leaf-container');
+            
+            // Interval waktu memunculkan daun baru (setiap 800ms)
+            setInterval(() => {
+                const leaf = document.createElement('div');
+                leaf.classList.add('leaf');
+                
+                // Nilai Acak untuk posisi, ukuran, dan durasi agar terlihat natural
+                const startLeft = Math.random() * 100; // Posisi horizontal (0% - 100%)
+                const animationDurationFall = Math.random() * 5 + 7; // Durasi jatuh 7s - 12s
+                const animationDurationSway = Math.random() * 3 + 2; // Durasi goyangan 2s - 5s
+                const leafSize = Math.random() * 8 + 10; // Ukuran 10px - 18px
+                
+                leaf.style.left = startLeft + 'vw';
+                leaf.style.width = leafSize + 'px';
+                leaf.style.height = leafSize + 'px';
+                
+                // Menerapkan 2 animasi secara bersamaan (Jatuh & Bergoyang)
+                leaf.style.animation = `fall ${animationDurationFall}s linear forwards, sway ${animationDurationSway}s ease-in-out infinite alternate`;
+                
+                container.appendChild(leaf);
+                
+                // Menghapus elemen daun dari HTML setelah selesai jatuh agar tidak membebani memori HP
+                setTimeout(() => {
+                    leaf.remove();
+                }, animationDurationFall * 1000);
+                
+            }, 800); 
+        }
+
+        // ==========================================
+        // KONFIGURASI SUPABASE
+        // ==========================================
+        const SUPABASE_URL = 'https://qnnacckoyfzrmvobwccb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFubmFjY2tveWZ6cm12b2J3Y2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwOTIxNTEsImV4cCI6MjEwNzY2ODE1MX0.XbLOSpq1ylDjkxrDqoQBJIFAZp6RhsDiCiXn6kF9NjA';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let dataWeddingId = "";
+        let jadwalFonnte = "";
+        let jamResepsiAcara = "08:00"; 
+        let tanggalResepsiAcara = "";
+        
+        async function muatDataUndangan() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const undanganId = urlParams.get('id');
+            const loadingScreen = document.getElementById('loadingScreen');
+            const invitationCard = document.getElementById('invitationCard');
+
+            if (!undanganId) {
+                loadingScreen.innerHTML = "ID Undangan tidak ditemukan.<br><span style='font-size:14px; margin-top:10px;'>Pastikan URL menggunakan ?id=nama-pasangan</span>";
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('data_undangan')
+                    .select(`
+                        id, "wPanggilan", "pPanggilan", "tanggalResepsi", "jamResepsi", maps_link, "usernamePercetakan",
+                        percetakan ( username, nama, no_wa )
+                    `)
+                    .eq('url_undangan', undanganId)
+                    .single();
+
+                if (error || !data) {
+                    loadingScreen.innerHTML = "Maaf, Undangan tidak ditemukan.";
+                    return;
+                }
+
+                document.getElementById('nama-mempelai').innerText = `${data.wPanggilan} & ${data.pPanggilan}`;
+                document.getElementById('tanggal-resepsi').innerText = data.tanggalResepsi;
+                document.getElementById('waktu-resepsi').innerText = data.jamResepsi;
+                
+                const jamMatch = data.jamResepsi.match(/(\d{1,2})[.:](\d{2})/);
+                if (jamMatch) {
+                    jamResepsiAcara = `${jamMatch[1].padStart(2, '0')}:${jamMatch[2]}`;
+                }
+                
+                if (data.maps_link) {
+                    document.getElementById('btn-maps').href = data.maps_link;
+                } else {
+                    document.getElementById('btn-maps').style.display = 'none';
+                }
+
+                const usernamePercetakan = data.usernamePercetakan;
+                const footerLogo = document.getElementById('footerLogo');
+                const logoWrapper = document.getElementById('logoWrapper');
+                const footerNama = document.getElementById('footerNamaPercetakan');
+                const footerNoWa = document.getElementById('footerNoWa');
+                const footerLink = document.getElementById('footer-link');
+
+                if (usernamePercetakan === 'muflihprint') {
+                    footerLogo.style.display = 'block';
+                    logoWrapper.style.gap = '15px';
+                    footerNama.innerText = "Percetakan Muflih Print";
+                    footerNoWa.innerText = "081574009621";
+                    footerLink.href = "https://wa.me/6281574009621?text=Halo%20Muflih%20Print,%20saya%20ingin%20menanyakan%20info%20pembuatan%20undangan";
+                } else {
+                    footerLogo.style.display = 'none';
+                    logoWrapper.style.gap = '0px';
+                    if (data.percetakan) {
+                        const namaP = data.percetakan.nama || "Percetakan";
+                        const waP = data.percetakan.no_wa || "";
+                        
+                        // KODE DISEDERHANAKAN 2: Format awalan nomor WA (tampilan) dengan Regex
+                        let waTampil = waP.replace(/^(?:\+?62)/, '0');
+                        
+                        footerNama.innerText = namaP;
+                        footerNoWa.innerText = waTampil;
+                        footerLink.href = `https://wa.me/${waP}?text=Halo%20${encodeURIComponent(namaP)},%20saya%20ingin%20menanyakan%20info%20pembuatan%20undangan`;
+                    } else {
+                        footerNama.innerText = "Percetakan";
+                        footerNoWa.innerText = "";
+                        footerLink.href = "#";
+                    }
+                }
+
+                dataWeddingId = data.id;
+                jadwalFonnte = data.tanggalResepsi;
+
+                loadingScreen.style.opacity = "0";
+                setTimeout(() => {
+                    loadingScreen.style.display = "none";
+                    invitationCard.style.display = "flex";
+                }, 500);
+
+            } catch (err) {
+                loadingScreen.innerHTML = "Terjadi kesalahan sistem.";
+            }
+        }
+
+        // Inisialisasi Saat Halaman Dimuat
+        window.onload = function() {
+            muatDataUndangan();
+            createFallingLeaves(); // Memicu daun jatuh
+        };
+
+        function getBulanAngka(namaBulan) {
+            const bulan = {
+                "januari": "01", "februari": "02", "maret": "03", "april": "04",
+                "mei": "05", "juni": "06", "juli": "07", "agustus": "08",
+                "september": "09", "oktober": "10", "november": "11", "desember": "12"
+            };
+            return bulan[namaBulan.toLowerCase()] || "01";
+        }
+
+        // Setup Flatpickr Khusus Tanggal
+        let fpTanggal = flatpickr("#tanggalPengingat", {
+            locale: "id",
+            altInput: true,
+            disableMobile: true, // Mempertahankan UI gelap di HP
+            altFormat: "l, j F Y", // Contoh: Rabu, 14 Oktober 2026
+            dateFormat: "Y-m-d",
+            onChange: function() {
+                updatePemberitahuan();
+            }
+        });
+
+        // Modal & Pengingat Setup
+        const modal = document.getElementById('reminderModal');
+
+        function openModal() {
+            modal.classList.add('active');
+            
+            // KODE DISEDERHANAKAN 1: Mendapatkan tanggal hari ini sebagai fallback menggunakan Flatpickr
+            let tanggalValid = flatpickr.formatDate(new Date(), "Y-m-d");
+
+            if (jadwalFonnte) {
+                try {
+                    let polaTanggalIndo = jadwalFonnte.match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/);
+                    if (polaTanggalIndo) {
+                        let tanggalExtracted = polaTanggalIndo[1].padStart(2, '0');
+                        let bulanExtracted = getBulanAngka(polaTanggalIndo[2]);
+                        let tahunExtracted = polaTanggalIndo[3];
+                        tanggalValid = `${tahunExtracted}-${bulanExtracted}-${tanggalExtracted}`;
+                    }
+                } catch (e) {
+                    console.error("Gagal parse tanggalResepsi:", e);
+                }
+            }
+
+            fpTanggal.setDate(tanggalValid);
+            document.getElementById('jamPengingat').value = "08:00";
+            tanggalResepsiAcara = tanggalValid;
+            updatePemberitahuan();
+        }
+        
+        function closeModal() {
+            modal.classList.remove('active');
+            document.getElementById('formReminder').reset();
+        }
+
+        // Event listener jam (menggunakan input HTML5 native)
+        document.getElementById('jamPengingat').addEventListener('input', updatePemberitahuan);
+
+        function updatePemberitahuan() {
+            const teksPemberitahuan = document.getElementById('teksPemberitahuan');
+            const valTanggal = document.getElementById('tanggalPengingat').value;
+            const valJam = document.getElementById('jamPengingat').value;
+
+            if (!valTanggal || !valJam || !tanggalResepsiAcara) return;
+
+            const waktuAcaraFull = new Date(`${tanggalResepsiAcara}T${jamResepsiAcara}`);
+            const waktuPengingatFull = new Date(`${valTanggal}T${valJam}`);
+            const selisihMs = waktuAcaraFull - waktuPengingatFull;
+
+            if (selisihMs <= 0) {
+                teksPemberitahuan.innerText = "* Peringatan: Waktu pengingat harus sebelum acara dimulai.";
+                teksPemberitahuan.style.color = "#ff4d4d";
+            } else {
+                teksPemberitahuan.style.color = "var(--gold-main)";
+                const selisihJam = Math.floor(selisihMs / (1000 * 60 * 60));
+                const selisihHari = Math.floor(selisihJam / 24);
+
+                if (selisihHari > 0) {
+                    teksPemberitahuan.innerText = `* Pengingat akan dikirim ${selisihHari} hari sebelum acara.`;
+                } else if (selisihJam > 0) {
+                    teksPemberitahuan.innerText = `* Pengingat akan dikirim ${selisihJam} jam sebelum acara.`;
+                } else {
+                    const selisihMenit = Math.floor(selisihMs / (1000 * 60));
+                    teksPemberitahuan.innerText = `* Pengingat akan dikirim ${selisihMenit} menit sebelum acara.`;
+                }
+            }
+        }
+
+        document.getElementById('formReminder').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            let inputNumber = document.getElementById('waNumber').value;
+            let btnSubmit = document.getElementById('btnSubmitForm');
+            let valTanggal = document.getElementById('tanggalPengingat').value;
+            let valJam = document.getElementById('jamPengingat').value;
+            let jadwalKirimDipilih = `${valTanggal} ${valJam}:00`;
+            
+            // KODE DISEDERHANAKAN 3: Format awalan nomor WA (input form) dengan Regex
+            inputNumber = inputNumber.replace(/^0/, '62');
+
+            btnSubmit.innerText = "Menyimpan...";
+            btnSubmit.disabled = true;
+
+            try {
+                const { data: existingData, error: checkError } = await supabaseClient
+                    .from('pengingat_wa')
+                    .select('id')
+                    .eq('nomor_wa', inputNumber)
+                    .eq('wedding_id', dataWeddingId)
+                    .maybeSingle();
+
+                if (checkError) throw checkError;
+
+                let dbError;
+                if (existingData) {
+                    const { error: updateError } = await supabaseClient
+                        .from('pengingat_wa')
+                        .update({ jadwal_kirim: jadwalKirimDipilih })
+                        .eq('id', existingData.id);
+                    dbError = updateError;
+                } else {
+                    const { error: insertError } = await supabaseClient
+                        .from('pengingat_wa')
+                        .insert([{ nomor_wa: inputNumber, wedding_id: dataWeddingId, jadwal_kirim: jadwalKirimDipilih }]);
+                    dbError = insertError;
+                }
+
+                if (dbError) throw dbError;
+                alert("Nomor dan jadwal pengingat berhasil disimpan!");
+                closeModal();
+            } catch (error) {
+                console.error("Error inserting data:", error);
+                alert("Gagal menyimpan data. Silakan coba lagi.");
+            } finally {
+                btnSubmit.innerText = "Simpan Nomor";
+                btnSubmit.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
