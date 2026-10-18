@@ -3,19 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Live Editor Undangan Web</title>
+    <title>Undangan Web</title>
     
-    <!-- Google Fonts dengan tambahan banyak font baru -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Allura&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Dancing+Script&family=Great+Vibes&family=Inter:wght@400;500;600&family=Italianno&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&family=Rouge+Script&family=Sacramento&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- Supabase & Flatpickr -->
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,11 +26,6 @@
                             goldMain: '#D4AF37',
                             goldDark: '#AA8C2C',
                             textLight: '#F8F9FA'
-                        },
-                        editor: {
-                            bg: '#0f0f11',
-                            panel: '#1a1a1e',
-                            border: '#27272c'
                         }
                     }
                 }
@@ -43,21 +34,14 @@
     </script>
 
     <style>
-        body { background-color: #0f0f11; color: #f3f4f6; overflow: hidden; }
+        body { background-color: #0A1128; color: #f3f4f6; overflow: hidden; margin: 0; }
         
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #1a1a1e; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
 
-        .input-group { margin-bottom: 1rem; }
-        .input-label { display: block; font-size: 0.75rem; text-transform: uppercase; color: #9ca3af; margin-bottom: 0.25rem; font-weight: 500; font-family: 'Inter', sans-serif;}
-        .input-field { width: 100%; background-color: #27272c; color: white; border: 1px solid #3f3f46; border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.875rem; font-family: 'Inter', sans-serif; transition: all 0.2s; outline: none; }
-        .input-field:focus { border-color: #D4AF37; }
-        fieldset { border: 1px solid #3f3f46; border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 1.5rem; }
-        legend { font-family: "Playfair Display", serif; color: #D4AF37; padding: 0 0.5rem; font-size: 1.1rem; }
-
-       #preview-window { position: relative; background-color: transparent; color: #F8F9FA; overflow: hidden; }
+        /* Container Setup */
+        #preview-window { position: relative; background-color: transparent; color: #F8F9FA; overflow: hidden; height: 100%; width: 100%; }
         #preview-window .no-scrollbar::-webkit-scrollbar { display: none; }
         #preview-window .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
@@ -84,603 +68,233 @@
         @keyframes wordFadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
         .cover-word { opacity: 0; display: inline-block; animation: wordFadeUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
-        /* Drag & Edit Highlight Classes */
-        [data-target] { cursor: pointer; transition: outline 0.2s ease; position: relative; }
-        [data-target]:hover { outline: 1px dashed rgba(212, 175, 55, 0.5); outline-offset: 2px; border-radius: 4px; }
-        .is-editing { outline: 2px dashed #D4AF37 !important; outline-offset: 4px; cursor: grab !important; user-select: none; z-index: 50; background: rgba(212, 175, 55, 0.1); border-radius: 4px; }
-        .is-editing:active { cursor: grabbing !important; }
-
         #musicToggleBtnPreview { animation: spin 4s linear infinite; }
         #musicToggleBtnPreview.paused { animation: none; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* ==========================================
-           CSS VARIABEL KHUSUS (SUMBU X & Y)
-           ========================================== */
-        .target-cover-title { font-family: var(--f-cover-title, 'Lato') !important; font-size: calc(10px * var(--s-cover-title, 1)) !important; top: var(--y-cover-title, 0px); left: var(--x-cover-title, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0.75rem + var(--mb-cover-title, 0px)) !important; display: inline-block; }
-        .target-cover-names { font-family: var(--f-cover-names, 'Great Vibes') !important; font-size: calc(36px * var(--s-cover-names, 1)) !important; top: var(--y-cover-names, 0px); left: var(--x-cover-names, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(1.25rem + var(--mb-cover-names, 0px)) !important; display: inline-flex; }
-        .target-cover-yth { font-family: var(--f-cover-yth, 'Lato') !important; font-size: calc(12px * var(--s-cover-yth, 1)) !important; top: var(--y-cover-yth, 0px); left: var(--x-cover-yth, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(1.5rem + var(--mb-cover-yth, 0px)) !important; display: inline-block; }
-        
-        .target-profile-pembuka { font-family: var(--f-profile-pembuka, 'Lato') !important; font-size: calc(12px * var(--s-profile-pembuka, 1)) !important; top: var(--y-profile-pembuka, 0px); left: var(--x-profile-pembuka, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; line-height: 1.6; margin-bottom: calc(2rem + var(--mb-profile-pembuka, 0px)) !important; }
-        .target-profile-title { font-family: var(--f-profile-title, 'Lato') !important; font-size: calc(9px * var(--s-profile-title, 1)) !important; top: var(--y-profile-title, 0px); left: var(--x-profile-title, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0.5rem + var(--mb-profile-title, 0px)) !important; display: inline-block; }
-        .target-profile-names { font-family: var(--f-profile-names, 'Great Vibes') !important; font-size: calc(30px * var(--s-profile-names, 1)) !important; top: var(--y-profile-names, 0px); left: var(--x-profile-names, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0.5rem + var(--mb-profile-names, 0px)) !important; }
-        .target-profile-parents { font-family: var(--f-profile-parents, 'Lato') !important; font-size: calc(11px * var(--s-profile-parents, 1)) !important; top: var(--y-profile-parents, 0px); left: var(--x-profile-parents, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-profile-parents, 0px)) !important; }
-        .target-profile-ampersand { font-family: var(--f-profile-ampersand, 'Great Vibes') !important; font-size: calc(30px * var(--s-profile-ampersand, 1)) !important; top: var(--y-profile-ampersand, 0px); left: var(--x-profile-ampersand, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; line-height: 1; margin-bottom: calc(1rem + var(--mb-profile-ampersand, 0px)) !important; display: inline-block;}
+        /* Disable Editor Pointers */
+        [data-target] { cursor: default !important; pointer-events: none !important; }
+        button, a, #btnPlayMusic { pointer-events: auto !important; cursor: pointer !important; }
 
-        .target-event-pengantar { font-family: var(--f-event-pengantar, 'Lato') !important; font-size: calc(11px * var(--s-event-pengantar, 1)) !important; top: var(--y-event-pengantar, 0px); left: var(--x-event-pengantar, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; line-height: 1.6; margin-bottom: calc(1.5rem + var(--mb-event-pengantar, 0px)) !important; }
-        .target-event-title { font-family: var(--f-event-title, 'Playfair Display') !important; font-size: calc(24px * var(--s-event-title, 1)) !important; top: var(--y-event-title, 0px); left: var(--x-event-title, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(1rem + var(--mb-event-title, 0px)) !important; display: inline-block; }
-        .target-event-text { font-family: var(--f-event-text, 'Lato') !important; font-size: calc(16px * var(--s-event-text, 1)) !important; top: var(--y-event-text, 0px); left: var(--x-event-text, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-event-text, 0px)) !important; display: inline-block; }
+        /* Dynamic Target CSS */
+        .target-cover-title { font-family: var(--f-cover-title, 'Lato') !important; font-size: calc(10px * var(--s-cover-title, 1)) !important; top: var(--y-cover-title, 0px); left: var(--x-cover-title, 0px); position: relative; margin-bottom: calc(0.75rem + var(--mb-cover-title, 0px)) !important; display: inline-block; }
+        .target-cover-names { font-family: var(--f-cover-names, 'Great Vibes') !important; font-size: calc(36px * var(--s-cover-names, 1)) !important; top: var(--y-cover-names, 0px); left: var(--x-cover-names, 0px); position: relative; margin-bottom: calc(1.25rem + var(--mb-cover-names, 0px)) !important; display: inline-flex; }
+        .target-cover-yth { font-family: var(--f-cover-yth, 'Lato') !important; font-size: calc(12px * var(--s-cover-yth, 1)) !important; top: var(--y-cover-yth, 0px); left: var(--x-cover-yth, 0px); position: relative; margin-bottom: calc(1.5rem + var(--mb-cover-yth, 0px)) !important; display: inline-block; }
         
-        /* -------------------------------------------
-           AKAD (GARIS & KOTAK & LABEL)
-           ------------------------------------------- */
-        .target-akad-line { top: var(--y-akad-line, 0px); left: var(--x-akad-line, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s; margin-bottom: calc(1rem + var(--mb-akad-line, 0px)) !important; margin-left: auto; margin-right: auto; display: block; }
-        .target-akad-line::before { content: ''; position: absolute; top: -15px; bottom: -15px; left: -10px; right: -10px; z-index: 10; }
+        .target-profile-pembuka { font-family: var(--f-profile-pembuka, 'Lato') !important; font-size: calc(12px * var(--s-profile-pembuka, 1)) !important; top: var(--y-profile-pembuka, 0px); left: var(--x-profile-pembuka, 0px); position: relative; line-height: 1.6; margin-bottom: calc(2rem + var(--mb-profile-pembuka, 0px)) !important; }
+        .target-profile-title { font-family: var(--f-profile-title, 'Lato') !important; font-size: calc(9px * var(--s-profile-title, 1)) !important; top: var(--y-profile-title, 0px); left: var(--x-profile-title, 0px); position: relative; margin-bottom: calc(0.5rem + var(--mb-profile-title, 0px)) !important; display: inline-block; }
+        .target-profile-names { font-family: var(--f-profile-names, 'Great Vibes') !important; font-size: calc(30px * var(--s-profile-names, 1)) !important; top: var(--y-profile-names, 0px); left: var(--x-profile-names, 0px); position: relative; margin-bottom: calc(0.5rem + var(--mb-profile-names, 0px)) !important; }
+        .target-profile-parents { font-family: var(--f-profile-parents, 'Lato') !important; font-size: calc(11px * var(--s-profile-parents, 1)) !important; top: var(--y-profile-parents, 0px); left: var(--x-profile-parents, 0px); position: relative; margin-bottom: calc(0px + var(--mb-profile-parents, 0px)) !important; }
+        .target-profile-ampersand { font-family: var(--f-profile-ampersand, 'Great Vibes') !important; font-size: calc(30px * var(--s-profile-ampersand, 1)) !important; top: var(--y-profile-ampersand, 0px); left: var(--x-profile-ampersand, 0px); position: relative; line-height: 1; margin-bottom: calc(1rem + var(--mb-profile-ampersand, 0px)) !important; display: inline-block;}
+
+        .target-event-pengantar { font-family: var(--f-event-pengantar, 'Lato') !important; font-size: calc(11px * var(--s-event-pengantar, 1)) !important; top: var(--y-event-pengantar, 0px); left: var(--x-event-pengantar, 0px); position: relative; line-height: 1.6; margin-bottom: calc(1.5rem + var(--mb-event-pengantar, 0px)) !important; }
+        .target-event-title { font-family: var(--f-event-title, 'Playfair Display') !important; font-size: calc(24px * var(--s-event-title, 1)) !important; top: var(--y-event-title, 0px); left: var(--x-event-title, 0px); position: relative; margin-bottom: calc(1rem + var(--mb-event-title, 0px)) !important; display: inline-block; }
         
-        .target-akad-box { top: var(--y-akad-box, 0px); left: var(--x-akad-box, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s; margin-bottom: calc(1rem + var(--mb-akad-box, 0px)) !important; width: 100%; display: block; }
+        .target-akad-line { top: var(--y-akad-line, 0px); left: var(--x-akad-line, 0px); position: relative; margin-bottom: calc(1rem + var(--mb-akad-line, 0px)) !important; margin-left: auto; margin-right: auto; display: block; }
+        .target-akad-box { top: var(--y-akad-box, 0px); left: var(--x-akad-box, 0px); position: relative; margin-bottom: calc(1rem + var(--mb-akad-box, 0px)) !important; width: 100%; display: block; }
+        .target-akad-divider { top: calc(1rem + var(--y-akad-divider, 0px)); left: calc(50% + var(--x-akad-divider, 0px)); position: absolute; transform: translateX(-50%); width: 1px; height: calc(100% - 2rem); background-color: rgba(212, 175, 55, 0.3); z-index: 20; }
+        .target-akad-label-tgl { top: var(--y-akad-label-tgl, 0px); left: var(--x-akad-label-tgl, 0px); position: relative; font-size: calc(9px * var(--s-akad-label-tgl, 1)) !important; margin-bottom: calc(0.1rem + var(--mb-akad-label-tgl, 0px)) !important; display: inline-block; }
+        .target-akad-line-tgl { top: var(--y-akad-line-tgl, 0px); left: var(--x-akad-line-tgl, 0px); position: relative; width: 100%; height: 1px; background-color: rgba(212, 175, 55, 0.2); margin-bottom: calc(0.5rem + var(--mb-akad-line-tgl, 0px)) !important; display: block; }
+        .target-akad-label-wkt { top: var(--y-akad-label-wkt, 0px); left: var(--x-akad-label-wkt, 0px); position: relative; font-size: calc(9px * var(--s-akad-label-wkt, 1)) !important; margin-bottom: calc(0.1rem + var(--mb-akad-label-wkt, 0px)) !important; display: inline-block; }
+        .target-akad-line-wkt { top: var(--y-akad-line-wkt, 0px); left: var(--x-akad-line-wkt, 0px); position: relative; width: 100%; height: 1px; background-color: rgba(212, 175, 55, 0.2); margin-bottom: calc(0.5rem + var(--mb-akad-line-wkt, 0px)) !important; display: block; }
+        .target-akad-tanggal { font-family: var(--f-akad-tanggal, 'Lato') !important; font-size: calc(16px * var(--s-akad-tanggal, 1)) !important; top: var(--y-akad-tanggal, 0px); left: var(--x-akad-tanggal, 0px); position: relative; margin-bottom: calc(0px + var(--mb-akad-tanggal, 0px)) !important; display: block; width: 100%; white-space: normal; }
+        .target-akad-waktu { font-family: var(--f-akad-waktu, 'Lato') !important; font-size: calc(16px * var(--s-akad-waktu, 1)) !important; top: var(--y-akad-waktu, 0px); left: var(--x-akad-waktu, 0px); position: relative; margin-bottom: calc(0px + var(--mb-akad-waktu, 0px)) !important; display: block; width: 100%; white-space: normal; } 
+        .target-akad-label-tempat { font-family: var(--f-akad-label-tempat, 'Inter') !important; font-size: calc(9px * var(--s-akad-label-tempat, 1)) !important; top: var(--y-akad-label-tempat, 0px); left: var(--x-akad-label-tempat, 0px); position: relative; margin-bottom: calc(0.25rem + var(--mb-akad-label-tempat, 0px)) !important; display: inline-block; text-transform: uppercase; letter-spacing: 1px; color: rgba(249, 229, 150, 0.8); }
+        .target-akad-tempat { font-family: var(--f-akad-tempat, 'Playfair Display') !important; font-size: calc(16px * var(--s-akad-tempat, 1)) !important; top: var(--y-akad-tempat, 0px); left: var(--x-akad-tempat, 0px); position: relative; margin-bottom: calc(0px + var(--mb-akad-tempat, 0px)) !important; display: inline-block; }
+        .target-akad-alamat { font-family: var(--f-akad-alamat, 'Lato') !important; font-size: calc(11px * var(--s-akad-alamat, 1)) !important; top: var(--y-akad-alamat, 0px); left: var(--x-akad-alamat, 0px); position: relative; margin-bottom: calc(0px + var(--mb-akad-alamat, 0px)) !important; }
+
+        .target-resepsi-line { top: var(--y-resepsi-line, 0px); left: var(--x-resepsi-line, 0px); position: relative; margin-bottom: calc(1rem + var(--mb-resepsi-line, 0px)) !important; margin-left: auto; margin-right: auto; display: block; }
+        .target-resepsi-box { top: var(--y-resepsi-box, 0px); left: var(--x-resepsi-box, 0px); position: relative; margin-bottom: calc(1rem + var(--mb-resepsi-box, 0px)) !important; width: 100%; display: block; }
+        .target-resepsi-divider { top: calc(1rem + var(--y-resepsi-divider, 0px)); left: calc(50% + var(--x-resepsi-divider, 0px)); position: absolute; transform: translateX(-50%); width: 1px; height: calc(100% - 2rem); background-color: rgba(212, 175, 55, 0.3); z-index: 20; }
+        .target-resepsi-label-tgl { top: var(--y-resepsi-label-tgl, 0px); left: var(--x-resepsi-label-tgl, 0px); position: relative; font-size: calc(9px * var(--s-resepsi-label-tgl, 1)) !important; margin-bottom: calc(0.1rem + var(--mb-resepsi-label-tgl, 0px)) !important; display: inline-block; }
+        .target-resepsi-line-tgl { top: var(--y-resepsi-line-tgl, 0px); left: var(--x-resepsi-line-tgl, 0px); position: relative; width: 100%; height: 1px; background-color: rgba(212, 175, 55, 0.2); margin-bottom: calc(0.5rem + var(--mb-resepsi-line-tgl, 0px)) !important; display: block; }
+        .target-resepsi-label-wkt { top: var(--y-resepsi-label-wkt, 0px); left: var(--x-resepsi-label-wkt, 0px); position: relative; font-size: calc(9px * var(--s-resepsi-label-wkt, 1)) !important; margin-bottom: calc(0.1rem + var(--mb-resepsi-label-wkt, 0px)) !important; display: inline-block; }
+        .target-resepsi-line-wkt { top: var(--y-resepsi-line-wkt, 0px); left: var(--x-resepsi-line-wkt, 0px); position: relative; width: 100%; height: 1px; background-color: rgba(212, 175, 55, 0.2); margin-bottom: calc(0.5rem + var(--mb-resepsi-line-wkt, 0px)) !important; display: block; }
+        .target-resepsi-hari { font-family: var(--f-resepsi-hari, 'Lato') !important; font-size: calc(10px * var(--s-resepsi-hari, 1)) !important; top: var(--y-resepsi-hari, 0px); left: var(--x-resepsi-hari, 0px); position: relative; margin-bottom: calc(0px + var(--mb-resepsi-hari, 0px)) !important; display: block; }
+        .target-resepsi-tanggal { font-family: var(--f-resepsi-tanggal, 'Playfair Display') !important; font-size: calc(26px * var(--s-resepsi-tanggal, 1)) !important; top: var(--y-resepsi-tanggal, 0px); left: var(--x-resepsi-tanggal, 0px); position: relative; margin-bottom: calc(0px + var(--mb-resepsi-tanggal, 0px)) !important; display: block; line-height: 1;}
+        .target-resepsi-bulan { font-family: var(--f-resepsi-bulan, 'Lato') !important; font-size: calc(11px * var(--s-resepsi-bulan, 1)) !important; top: var(--y-resepsi-bulan, 0px); left: var(--x-resepsi-bulan, 0px); position: relative; margin-bottom: calc(0px + var(--mb-resepsi-bulan, 0px)) !important; display: block; text-transform: uppercase; letter-spacing: 1px; }
+        .target-resepsi-tahun { font-family: var(--f-resepsi-tahun, 'Lato') !important; font-size: calc(9px * var(--s-resepsi-tahun, 1)) !important; top: var(--y-resepsi-tahun, 0px); left: var(--x-resepsi-tahun, 0px); position: relative; margin-bottom: calc(0px + var(--mb-resepsi-tahun, 0px)) !important; display: block; }
+        .target-resepsi-waktu { font-family: var(--f-resepsi-waktu, 'Lato') !important; font-size: calc(16px * var(--s-resepsi-waktu, 1)) !important; top: var(--y-resepsi-waktu, 0px); left: var(--x-resepsi-waktu, 0px); position: relative; margin-bottom: calc(0px + var(--mb-resepsi-waktu, 0px)) !important; display: block; width: 100%; white-space: normal; }
+        .target-resepsi-label-tempat { font-family: var(--f-resepsi-label-tempat, 'Inter') !important; font-size: calc(9px * var(--s-resepsi-label-tempat, 1)) !important; top: var(--y-resepsi-label-tempat, 0px); left: var(--x-resepsi-label-tempat, 0px); position: relative; margin-bottom: calc(0.25rem + var(--mb-resepsi-label-tempat, 0px)) !important; display: inline-block; text-transform: uppercase; letter-spacing: 1px; color: rgba(249, 229, 150, 0.8); }
+        .target-resepsi-tempat { font-family: var(--f-resepsi-tempat, 'Playfair Display') !important; font-size: calc(16px * var(--s-resepsi-tempat, 1)) !important; top: var(--y-resepsi-tempat, 0px); left: var(--x-resepsi-tempat, 0px); position: relative; margin-bottom: calc(0px + var(--mb-resepsi-tempat, 0px)) !important; display: inline-block; }
         
-        .target-akad-divider { top: calc(1rem + var(--y-akad-divider, 0px)); left: calc(50% + var(--x-akad-divider, 0px)); position: absolute; transform: translateX(-50%); width: 1px; height: calc(100% - 2rem); background-color: rgba(212, 175, 55, 0.3); transition: top 0s, left 0s; z-index: 20; }
-        .target-akad-divider::before { content: ''; position: absolute; top: -10px; bottom: -10px; left: -20px; right: -20px; z-index: 20; cursor: grab;}
-        .target-akad-divider.is-editing::before { cursor: grabbing; }
-
-        /* Teks & Garis Bawah - Tanggal (Akad) */
-        .target-akad-label-tgl { top: var(--y-akad-label-tgl, 0px); left: var(--x-akad-label-tgl, 0px); position: relative; font-size: calc(9px * var(--s-akad-label-tgl, 1)) !important; margin-bottom: calc(0.1rem + var(--mb-akad-label-tgl, 0px)) !important; display: inline-block; transition: top 0s, left 0s, margin 0.2s, font-size 0.2s; }
-        .target-akad-line-tgl { top: var(--y-akad-line-tgl, 0px); left: var(--x-akad-line-tgl, 0px); position: relative; width: 100%; height: 1px; background-color: rgba(212, 175, 55, 0.2); margin-bottom: calc(0.5rem + var(--mb-akad-line-tgl, 0px)) !important; display: block; transition: top 0s, left 0s, margin 0.2s; }
-        .target-akad-line-tgl::before { content: ''; position: absolute; top: -8px; bottom: -8px; left: -5px; right: -5px; z-index: 20; cursor: grab; }
-
-        /* Teks & Garis Bawah - Waktu (Akad) */
-        .target-akad-label-wkt { top: var(--y-akad-label-wkt, 0px); left: var(--x-akad-label-wkt, 0px); position: relative; font-size: calc(9px * var(--s-akad-label-wkt, 1)) !important; margin-bottom: calc(0.1rem + var(--mb-akad-label-wkt, 0px)) !important; display: inline-block; transition: top 0s, left 0s, margin 0.2s, font-size 0.2s; }
-        .target-akad-line-wkt { top: var(--y-akad-line-wkt, 0px); left: var(--x-akad-line-wkt, 0px); position: relative; width: 100%; height: 1px; background-color: rgba(212, 175, 55, 0.2); margin-bottom: calc(0.5rem + var(--mb-akad-line-wkt, 0px)) !important; display: block; transition: top 0s, left 0s, margin 0.2s; }
-        .target-akad-line-wkt::before { content: ''; position: absolute; top: -8px; bottom: -8px; left: -5px; right: -5px; z-index: 20; cursor: grab; }
-
-/* Teks Dinamis Akad Mandiri */
-       /* Teks Dinamis Akad Mandiri */
-        .target-akad-tanggal { font-family: var(--f-akad-tanggal, 'Lato') !important; font-size: calc(16px * var(--s-akad-tanggal, 1)) !important; top: var(--y-akad-tanggal, 0px); left: var(--x-akad-tanggal, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-akad-tanggal, 0px)) !important; display: block; width: 100%; white-space: normal; }
-        .target-akad-waktu { font-family: var(--f-akad-waktu, 'Lato') !important; font-size: calc(16px * var(--s-akad-waktu, 1)) !important; top: var(--y-akad-waktu, 0px); left: var(--x-akad-waktu, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-akad-waktu, 0px)) !important; display: block; width: 100%; white-space: normal; } 
-        .target-akad-label-tempat { font-family: var(--f-akad-label-tempat, 'Inter') !important; font-size: calc(9px * var(--s-akad-label-tempat, 1)) !important; top: var(--y-akad-label-tempat, 0px); left: var(--x-akad-label-tempat, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0.25rem + var(--mb-akad-label-tempat, 0px)) !important; display: inline-block; text-transform: uppercase; letter-spacing: 1px; color: rgba(249, 229, 150, 0.8); }
-        .target-akad-tempat { font-family: var(--f-akad-tempat, 'Playfair Display') !important; font-size: calc(16px * var(--s-akad-tempat, 1)) !important; top: var(--y-akad-tempat, 0px); left: var(--x-akad-tempat, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-akad-tempat, 0px)) !important; display: inline-block; }
-        .target-akad-alamat { font-family: var(--f-akad-alamat, 'Lato') !important; font-size: calc(11px * var(--s-akad-alamat, 1)) !important; top: var(--y-akad-alamat, 0px); left: var(--x-akad-alamat, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-akad-alamat, 0px)) !important; }
-        /* -------------------------------------------
-           RESEPSI (GARIS & KOTAK & LABEL)
-           ------------------------------------------- */
-        .target-resepsi-line { top: var(--y-resepsi-line, 0px); left: var(--x-resepsi-line, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s; margin-bottom: calc(1rem + var(--mb-resepsi-line, 0px)) !important; margin-left: auto; margin-right: auto; display: block; }
-        .target-resepsi-line::before { content: ''; position: absolute; top: -15px; bottom: -15px; left: -10px; right: -10px; z-index: 10; }
+        .target-event-alamat { font-family: var(--f-event-alamat, 'Lato') !important; font-size: calc(11px * var(--s-event-alamat, 1)) !important; top: var(--y-event-alamat, 0px); left: var(--x-event-alamat, 0px); position: relative; margin-bottom: calc(0px + var(--mb-event-alamat, 0px)) !important; }
+        .target-event-ket { font-family: var(--f-event-ket, 'Lato') !important; font-size: calc(10px * var(--s-event-ket, 1)) !important; top: var(--y-event-ket, 0px); left: var(--x-event-ket, 0px); position: relative; margin-bottom: calc(0px + var(--mb-event-ket, 0px)) !important; }
         
-        .target-resepsi-box { top: var(--y-resepsi-box, 0px); left: var(--x-resepsi-box, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s; margin-bottom: calc(1rem + var(--mb-resepsi-box, 0px)) !important; width: 100%; display: block; }
+        .target-closing-teks { font-family: var(--f-closing-teks, 'Lato') !important; font-size: calc(11px * var(--s-closing-teks, 1)) !important; top: var(--y-closing-teks, 0px); left: var(--x-closing-teks, 0px); position: relative; line-height: 1.6; margin-bottom: calc(1.5rem + var(--mb-closing-teks, 0px)) !important; }
+        .target-closing-salam { font-family: var(--f-closing-salam, 'Playfair Display') !important; font-size: calc(18px * var(--s-closing-salam, 1)) !important; top: var(--y-closing-salam, 0px); left: var(--x-closing-salam, 0px); position: relative; margin-bottom: calc(0.25rem + var(--mb-closing-salam, 0px)) !important; display: inline-block;}
+        .target-closing-names { font-family: var(--f-closing-names, 'Great Vibes') !important; font-size: calc(24px * var(--s-closing-names, 1)) !important; top: var(--y-closing-names, 0px); left: var(--x-closing-names, 0px); position: relative; margin-bottom: calc(1rem + var(--mb-closing-names, 0px)) !important; display: inline-block;}
         
-        .target-resepsi-divider { top: calc(1rem + var(--y-resepsi-divider, 0px)); left: calc(50% + var(--x-resepsi-divider, 0px)); position: absolute; transform: translateX(-50%); width: 1px; height: calc(100% - 2rem); background-color: rgba(212, 175, 55, 0.3); transition: top 0s, left 0s; z-index: 20; }
-        .target-resepsi-divider::before { content: ''; position: absolute; top: -10px; bottom: -10px; left: -20px; right: -20px; z-index: 20; cursor: grab;}
-        .target-resepsi-divider.is-editing::before { cursor: grabbing; }
+        .target-turut-title { font-family: var(--f-turut-title, 'Playfair Display') !important; font-size: calc(20px * var(--s-turut-title, 1)) !important; top: var(--y-turut-title, 0px); left: var(--x-turut-title, 0px); position: relative; margin-bottom: calc(1rem + var(--mb-turut-title, 0px)) !important; display: inline-block;}
+        .target-turut-list { font-family: var(--f-turut-list, 'Lato') !important; font-size: calc(11px * var(--s-turut-list, 1)) !important; top: var(--y-turut-list, 0px); left: var(--x-turut-list, 0px); position: relative; margin-bottom: calc(0px + var(--mb-turut-list, 0px)) !important; }
 
-        /* Teks & Garis Bawah - Tanggal (Resepsi) */
-        .target-resepsi-label-tgl { top: var(--y-resepsi-label-tgl, 0px); left: var(--x-resepsi-label-tgl, 0px); position: relative; font-size: calc(9px * var(--s-resepsi-label-tgl, 1)) !important; margin-bottom: calc(0.1rem + var(--mb-resepsi-label-tgl, 0px)) !important; display: inline-block; transition: top 0s, left 0s, margin 0.2s, font-size 0.2s; }
-        .target-resepsi-line-tgl { top: var(--y-resepsi-line-tgl, 0px); left: var(--x-resepsi-line-tgl, 0px); position: relative; width: 100%; height: 1px; background-color: rgba(212, 175, 55, 0.2); margin-bottom: calc(0.5rem + var(--mb-resepsi-line-tgl, 0px)) !important; display: block; transition: top 0s, left 0s, margin 0.2s; }
-        .target-resepsi-line-tgl::before { content: ''; position: absolute; top: -8px; bottom: -8px; left: -5px; right: -5px; z-index: 20; cursor: grab; }
-
-        /* Teks & Garis Bawah - Waktu (Resepsi) */
-        .target-resepsi-label-wkt { top: var(--y-resepsi-label-wkt, 0px); left: var(--x-resepsi-label-wkt, 0px); position: relative; font-size: calc(9px * var(--s-resepsi-label-wkt, 1)) !important; margin-bottom: calc(0.1rem + var(--mb-resepsi-label-wkt, 0px)) !important; display: inline-block; transition: top 0s, left 0s, margin 0.2s, font-size 0.2s; }
-        .target-resepsi-line-wkt { top: var(--y-resepsi-line-wkt, 0px); left: var(--x-resepsi-line-wkt, 0px); position: relative; width: 100%; height: 1px; background-color: rgba(212, 175, 55, 0.2); margin-bottom: calc(0.5rem + var(--mb-resepsi-line-wkt, 0px)) !important; display: block; transition: top 0s, left 0s, margin 0.2s; }
-        .target-resepsi-line-wkt::before { content: ''; position: absolute; top: -8px; bottom: -8px; left: -5px; right: -5px; z-index: 20; cursor: grab; }
-
-        /* Detail Hari & Angka */
-        .target-resepsi-hari { font-family: var(--f-resepsi-hari, 'Lato') !important; font-size: calc(10px * var(--s-resepsi-hari, 1)) !important; top: var(--y-resepsi-hari, 0px); left: var(--x-resepsi-hari, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-resepsi-hari, 0px)) !important; display: block; }
-        .target-resepsi-tanggal { font-family: var(--f-resepsi-tanggal, 'Playfair Display') !important; font-size: calc(26px * var(--s-resepsi-tanggal, 1)) !important; top: var(--y-resepsi-tanggal, 0px); left: var(--x-resepsi-tanggal, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-resepsi-tanggal, 0px)) !important; display: block; line-height: 1;}
-        .target-resepsi-bulan { font-family: var(--f-resepsi-bulan, 'Lato') !important; font-size: calc(11px * var(--s-resepsi-bulan, 1)) !important; top: var(--y-resepsi-bulan, 0px); left: var(--x-resepsi-bulan, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-resepsi-bulan, 0px)) !important; display: block; text-transform: uppercase; letter-spacing: 1px; }
-        .target-resepsi-tahun { font-family: var(--f-resepsi-tahun, 'Lato') !important; font-size: calc(9px * var(--s-resepsi-tahun, 1)) !important; top: var(--y-resepsi-tahun, 0px); left: var(--x-resepsi-tahun, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-resepsi-tahun, 0px)) !important; display: block; }
-
-        .target-event-alamat { font-family: var(--f-event-alamat, 'Lato') !important; font-size: calc(11px * var(--s-event-alamat, 1)) !important; top: var(--y-event-alamat, 0px); left: var(--x-event-alamat, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-event-alamat, 0px)) !important; }
-        .target-event-ket { font-family: var(--f-event-ket, 'Lato') !important; font-size: calc(10px * var(--s-event-ket, 1)) !important; top: var(--y-event-ket, 0px); left: var(--x-event-ket, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-event-ket, 0px)) !important; }
-        
-        .target-closing-teks { font-family: var(--f-closing-teks, 'Lato') !important; font-size: calc(11px * var(--s-closing-teks, 1)) !important; top: var(--y-closing-teks, 0px); left: var(--x-closing-teks, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; line-height: 1.6; margin-bottom: calc(1.5rem + var(--mb-closing-teks, 0px)) !important; }
-        .target-closing-salam { font-family: var(--f-closing-salam, 'Playfair Display') !important; font-size: calc(18px * var(--s-closing-salam, 1)) !important; top: var(--y-closing-salam, 0px); left: var(--x-closing-salam, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0.25rem + var(--mb-closing-salam, 0px)) !important; display: inline-block;}
-        .target-closing-names { font-family: var(--f-closing-names, 'Great Vibes') !important; font-size: calc(24px * var(--s-closing-names, 1)) !important; top: var(--y-closing-names, 0px); left: var(--x-closing-names, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(1rem + var(--mb-closing-names, 0px)) !important; display: inline-block;}
-        
-        .target-turut-title { font-family: var(--f-turut-title, 'Playfair Display') !important; font-size: calc(20px * var(--s-turut-title, 1)) !important; top: var(--y-turut-title, 0px); left: var(--x-turut-title, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(1rem + var(--mb-turut-title, 0px)) !important; display: inline-block;}
-        .target-turut-list { font-family: var(--f-turut-list, 'Lato') !important; font-size: calc(11px * var(--s-turut-list, 1)) !important; top: var(--y-turut-list, 0px); left: var(--x-turut-list, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-turut-list, 0px)) !important; }
-    
-        /* Teks Dinamis Resepsi Mandiri */
-        .target-resepsi-waktu { font-family: var(--f-resepsi-waktu, 'Lato') !important; font-size: calc(16px * var(--s-resepsi-waktu, 1)) !important; top: var(--y-resepsi-waktu, 0px); left: var(--x-resepsi-waktu, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-resepsi-waktu, 0px)) !important; display: block; width: 100%; white-space: normal; }
-        .target-resepsi-label-tempat { font-family: var(--f-resepsi-label-tempat, 'Inter') !important; font-size: calc(9px * var(--s-resepsi-label-tempat, 1)) !important; top: var(--y-resepsi-label-tempat, 0px); left: var(--x-resepsi-label-tempat, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0.25rem + var(--mb-resepsi-label-tempat, 0px)) !important; display: inline-block; text-transform: uppercase; letter-spacing: 1px; color: rgba(249, 229, 150, 0.8); }
-        .target-resepsi-tempat { font-family: var(--f-resepsi-tempat, 'Playfair Display') !important; font-size: calc(16px * var(--s-resepsi-tempat, 1)) !important; top: var(--y-resepsi-tempat, 0px); left: var(--x-resepsi-tempat, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0px + var(--mb-resepsi-tempat, 0px)) !important; display: inline-block; }
-        /* -------------------------------------------
-           KOTAK KONTAINER UTAMA (GLASS CARDS)
-           ------------------------------------------- */
-        .target-cover-card { top: var(--y-cover-card, 0px); left: var(--x-cover-card, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, padding 0.2s, width 0.2s; margin-bottom: calc(0px + var(--mb-cover-card, 0px)) !important; }
-        .target-profil-card { top: var(--y-profil-card, 0px); left: var(--x-profil-card, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, padding 0.2s, width 0.2s; margin-bottom: calc(0px + var(--mb-profil-card, 0px)) !important; }
-        .target-akad-card { top: var(--y-akad-card, 0px); left: var(--x-akad-card, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, padding 0.2s, width 0.2s; margin-bottom: calc(0px + var(--mb-akad-card, 0px)) !important; }
-        .target-resepsi-card { top: var(--y-resepsi-card, 0px); left: var(--x-resepsi-card, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, padding 0.2s, width 0.2s; margin-bottom: calc(0px + var(--mb-resepsi-card, 0px)) !important; }
-        .target-penutup-card { top: var(--y-penutup-card, 0px); left: var(--x-penutup-card, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, padding 0.2s, width 0.2s; margin-bottom: calc(0px + var(--mb-penutup-card, 0px)) !important; }
-        .target-turut-card { top: var(--y-turut-card, 0px); left: var(--x-turut-card, 0px); position: relative; transition: top 0s, left 0s, margin 0.2s, padding 0.2s, width 0.2s; margin-bottom: calc(0px + var(--mb-turut-card, 0px)) !important; }
-    
+        .target-cover-card { top: var(--y-cover-card, 0px); left: var(--x-cover-card, 0px); position: relative; margin-bottom: calc(0px + var(--mb-cover-card, 0px)) !important; }
+        .target-profil-card { top: var(--y-profil-card, 0px); left: var(--x-profil-card, 0px); position: relative; margin-bottom: calc(0px + var(--mb-profil-card, 0px)) !important; }
+        .target-akad-card { top: var(--y-akad-card, 0px); left: var(--x-akad-card, 0px); position: relative; margin-bottom: calc(0px + var(--mb-akad-card, 0px)) !important; }
+        .target-resepsi-card { top: var(--y-resepsi-card, 0px); left: var(--x-resepsi-card, 0px); position: relative; margin-bottom: calc(0px + var(--mb-resepsi-card, 0px)) !important; }
+        .target-penutup-card { top: var(--y-penutup-card, 0px); left: var(--x-penutup-card, 0px); position: relative; margin-bottom: calc(0px + var(--mb-penutup-card, 0px)) !important; }
+        .target-turut-card { top: var(--y-turut-card, 0px); left: var(--x-turut-card, 0px); position: relative; margin-bottom: calc(0px + var(--mb-turut-card, 0px)) !important; }
     </style>
 </head>
-<body class="flex flex-col lg:flex-row h-screen w-full font-['Inter']">
+<body class="w-full h-screen font-['Inter'] flex bg-brand-bg bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] relative z-0">
 
-   <!-- ==========================================
-         KIRI: PREVIEW (SMARTPHONE MOCKUP)
-         ========================================== -->
-    <!-- TAMBAHKAN bg-brand-bg dan bg bintang di sini, ganti bg-black/90 -->
-    <div id="previewPanel" class="w-full lg:w-1/2 h-[50vh] lg:h-screen bg-brand-bg bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] border-b lg:border-b-0 lg:border-r border-editor-border flex flex-col items-center justify-center relative p-4 shrink-0 overflow-hidden z-0">  
+    <!-- Leaf animation background spanning full body -->
+    <div id="leaf-container"></div>
+
+    <!-- Centered Mockup Container acting as the Main Phone Screen -->
+    <div id="mockupContainer" class="relative bg-transparent h-full overflow-hidden shadow-2xl mx-auto w-full max-w-[420px] z-10">
         
-        <!-- PINDAHKAN leaf-container ke sini agar daun memenuhi layar desktop -->
-        <div id="leaf-container"></div>
+        <div id="preview-window" class="w-full h-full text-brand-textLight antialiased selection:bg-brand-goldMain selection:text-brand-bg font-sans bg-transparent">
+            
+            <button id="btnPlayMusic" onclick="toggleMusic()" class="absolute bottom-6 right-6 z-50 bg-brand-goldMain text-brand-bg p-3 rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)] hidden transition-transform hover:scale-110">
+                <svg id="musicToggleBtnPreview" class="w-5 h-5 paused" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                </svg>
+            </button>
 
-        <div id="previewLabel" class="absolute top-4 left-6 z-10 flex items-center gap-2 text-brand-goldMain">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-            <span class="font-serif font-bold text-lg tracking-wide">Live Preview</span>
-        </div>
+            <!-- Loading Screen -->
+            <div class="absolute inset-0 bg-brand-bg flex flex-col justify-center items-center z-[100] text-brand-goldMain font-serif text-lg" id="loadingScreen">
+                <svg class="animate-spin h-6 w-6 mb-3 text-brand-goldMain" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <span id="loadingText">Menyiapkan Undangan...</span>
+            </div>
 
-        <!-- UBAH bg-brand-bg menjadi bg-transparent dan tambahkan z-10 -->
-        <div id="mockupContainer" class="relative bg-transparent rounded-[2.5rem] border-[6px] md:border-[8px] border-gray-800 shadow-2xl overflow-hidden mt-6 lg:mt-0 z-10" style="width: 360px; height: 100%; max-height: 760px; aspect-ratio: 9/19;">
-                <!-- ALIGNMENT & GROUP TOOLBAR (Muncul saat multi-select) -->
-            <div id="alignToolbar" class="hidden absolute top-4 left-1/2 transform -translate-x-1/2 bg-[#1a1a1e]/90 backdrop-blur border border-brand-goldMain/30 p-2 rounded-xl shadow-2xl z-[300] gap-1 items-center">
-                <span class="text-[10px] uppercase text-gray-400 font-bold px-2 border-r border-gray-600">Align</span>
-                
-                <!-- Horizontal Align -->
-                <div class="flex items-center gap-1 border-r border-gray-600 pr-1">
-                    <button onclick="alignSelected('left')" class="p-1 hover:bg-brand-goldMain/20 text-brand-goldLight rounded transition-colors" title="Rata Kiri">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="2" x2="4" y2="22"></line><rect x="8" y="6" width="12" height="4"></rect><rect x="8" y="14" width="8" height="4"></rect></svg>
-                    </button>
-                    <button onclick="alignSelected('center')" class="p-1 hover:bg-brand-goldMain/20 text-brand-goldLight rounded transition-colors" title="Rata Tengah">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><rect x="6" y="6" width="12" height="4"></rect><rect x="8" y="14" width="8" height="4"></rect></svg>
-                    </button>
-                    <button onclick="alignSelected('right')" class="p-1 hover:bg-brand-goldMain/20 text-brand-goldLight rounded transition-colors" title="Rata Kanan">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="20" y1="2" x2="20" y2="22"></line><rect x="4" y="6" width="12" height="4"></rect><rect x="8" y="14" width="8" height="4"></rect></svg>
-                    </button>
-                </div>
-
-                <!-- Vertical Align -->
-                <div class="flex items-center gap-1 border-r border-gray-600 pr-1 pl-1">
-                    <button onclick="alignSelected('top')" class="p-1 hover:bg-brand-goldMain/20 text-brand-goldLight rounded transition-colors" title="Rata Atas">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="4" x2="22" y2="4"></line><rect x="6" y="8" width="4" height="12"></rect><rect x="14" y="8" width="4" height="8"></rect></svg>
-                    </button>
-                    <button onclick="alignSelected('middle')" class="p-1 hover:bg-brand-goldMain/20 text-brand-goldLight rounded transition-colors" title="Rata Tengah (Vertikal)">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="12" x2="22" y2="12"></line><rect x="6" y="4" width="4" height="6"></rect><rect x="14" y="14" width="4" height="6"></rect></svg>
-                    </button>
-                    <button onclick="alignSelected('bottom')" class="p-1 hover:bg-brand-goldMain/20 text-brand-goldLight rounded transition-colors" title="Rata Bawah">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="20" x2="22" y2="20"></line><rect x="6" y="4" width="4" height="12"></rect><rect x="14" y="8" width="4" height="8"></rect></svg>
-                    </button>
-                </div>
-
-                <!-- Grouping / Kelompokkan -->
-                <div class="flex items-center gap-1 pl-1">
-                    <button id="btnGroup" onclick="toggleGroup()" class="p-1 hover:bg-brand-goldMain/20 text-brand-goldLight rounded transition-colors" title="Group/Ungroup">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><path d="M9 9h6v6H9z"></path></svg>
-                    </button>
-                </div>
-                
-                <!-- Tombol Hapus (Delete) -->
-                <div class="flex items-center gap-1 pl-1 border-l border-gray-600 ml-1">
-                    <button onclick="deleteSelected()" class="p-1 hover:bg-red-500/20 text-red-400 rounded transition-colors" title="Hapus Komponen (Del)">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
+            <!-- Cover Page -->
+            <div id="coverPage" class="absolute inset-0 bg-transparent z-[90] flex flex-col justify-center items-center p-5 text-center">
+                <div class="glass-card target-cover-card p-8 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col items-center relative overflow-hidden" data-target="cover-card">
+                    <div class="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-brand-goldMain rounded-tl-3xl opacity-50 m-3 pointer-events-none"></div>
+                    <div class="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-brand-goldMain rounded-br-3xl opacity-50 m-3 pointer-events-none"></div>
+                    
+                    <p class="target-cover-title font-sans text-brand-goldLight tracking-[3px] uppercase" data-target="cover-title">The Wedding Of</p>
+                    <h1 id="coverNames" class="target-cover-names text-brand-goldMain drop-shadow-md flex flex-wrap justify-center gap-x-2" data-target="cover-names">... & ...</h1>
+                    
+                    <p class="target-cover-yth font-sans text-xs text-gray-300" data-target="cover-yth">Kepada Yth.<br><span class="font-bold text-white mt-1 block">Tamu Undangan</span></p>
+                    <button onclick="openInvitation()" class="bg-gradient-to-r from-brand-goldLight to-brand-goldMain text-brand-bg font-bold py-2.5 px-6 rounded-full uppercase tracking-wider text-xs transition-all hover:shadow-[0_0_20px_rgba(212,175,55,0.6)] relative z-10" style="animation: pulse-glow 2s infinite;">Buka Undangan</button>
                 </div>
             </div>
 
-     <!-- HAPUS background bintang dan leaf-container dari dalam preview-window -->
-            <div id="preview-window" class="w-full h-full text-brand-textLight antialiased selection:bg-brand-goldMain selection:text-brand-bg font-sans bg-transparent">
-                <!-- GARIS BANTU RATA TENGAH (CENTER GUIDE) -->
-                <div id="center-guide" class="hidden absolute top-0 bottom-0 left-1/2 w-[1px] bg-gray-400/50 z-[200] pointer-events-none transform -translate-x-1/2 transition-colors duration-200"></div>
-
-                <button id="btnPlayMusic" onclick="toggleMusic()" class="absolute bottom-6 right-6 z-50 bg-brand-goldMain text-brand-bg p-3 rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)] hidden transition-transform hover:scale-110">
-                    <svg id="musicToggleBtnPreview" class="w-5 h-5 paused" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                    </svg>
-                </button>
-
-                <!-- Loading Screen Preview -->
-           <!-- Ubah bg-brand-bg menjadi bg-transparent -->
-<div class="absolute inset-0 bg-transparent flex flex-col justify-center items-center z-[100] text-brand-goldMain font-serif text-lg" id="loadingScreen">
-    <svg class="animate-spin h-6 w-6 mb-3 text-brand-goldMain" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-    <span id="loadingText">Menyiapkan Preview...</span>
-</div>
-
-                <!-- Cover Page Preview -->
-         <div id="coverPage" class="absolute inset-0 bg-transparent z-[90] flex flex-col justify-center items-center p-5 text-center">
-                       <div class="glass-card target-cover-card p-8 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col items-center relative overflow-hidden" data-target="cover-card">
-                        <div class="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-brand-goldMain rounded-tl-3xl opacity-50 m-3 pointer-events-none"></div>
-                        <div class="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-brand-goldMain rounded-br-3xl opacity-50 m-3 pointer-events-none"></div>
-                        <p class="target-cover-title font-sans text-brand-goldLight tracking-[3px] uppercase" data-target="cover-title">The Wedding Of</p>
-                        <h1 id="coverNames" class="target-cover-names text-brand-goldMain drop-shadow-md flex flex-wrap justify-center gap-x-2" data-target="cover-names">... & ...</h1>
-                        <p class="target-cover-yth font-sans text-xs text-gray-300" data-target="cover-yth">Kepada Yth.<br><span class="font-bold text-white mt-1 block">Tamu Undangan</span></p>
-                        <button onclick="openInvitation()" class="bg-gradient-to-r from-brand-goldLight to-brand-goldMain text-brand-bg font-bold py-2.5 px-6 rounded-full uppercase tracking-wider text-xs transition-all hover:shadow-[0_0_20px_rgba(212,175,55,0.6)] relative z-10" style="animation: pulse-glow 2s infinite;">Buka Undangan</button>
+            <!-- Swipe Content -->
+            <div id="mainContent" class="hidden flex w-full h-full overflow-x-auto overflow-y-auto snap-x snap-mandatory no-scrollbar relative z-10">     
+                <!-- Sec 1: Pembuka -->
+                <section id="sectionProfil" class="snap-start shrink-0 w-full h-full overflow-y-auto relative p-5">
+                    <div class="min-h-full flex flex-col justify-center items-center py-8">
+                        <div class="glass-card target-profil-card rounded-2xl p-6 shadow-xl w-full text-center" data-target="profil-card">
+                            <div id="prevTeksPembuka" class="target-profile-pembuka font-sans text-xs text-gray-300 italic" data-target="profile-pembuka"></div>
+                            <div id="prevCoupleContainer" class="flex flex-col gap-8"></div>
+                        </div>
+                        <div class="mt-6 flex items-center justify-center gap-2 swipe-indicator text-brand-goldMain opacity-90 reveal-item" style="transition-delay: 500ms">
+                            <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            <span class="font-sans text-[10px] uppercase tracking-[2px]">Geser</span>
+                        </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Swipe Content Preview -->
-              <div id="mainContent" class="hidden flex w-full h-full overflow-x-auto overflow-y-auto snap-x snap-mandatory no-scrollbar relative z-10">     
-                    <!-- Sec 1: Pembuka -->
-                   <section id="sectionProfil" class="snap-start shrink-0 w-full h-full overflow-y-auto relative p-5">
-                        <div class="min-h-full flex flex-col justify-center items-center py-8">
-                            <div class="glass-card target-profil-card rounded-2xl p-6 shadow-xl w-full text-center" data-target="profil-card">
-                                <div id="prevTeksPembuka" class="target-profile-pembuka font-sans text-xs text-gray-300 italic" data-target="profile-pembuka"></div>
-                                <div id="prevCoupleContainer" class="flex flex-col gap-8"></div>
-                            </div>
-                            <div class="mt-6 flex items-center justify-center gap-2 swipe-indicator text-brand-goldMain opacity-90 reveal-item" style="transition-delay: 500ms">
-                                <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                <span class="font-sans text-[10px] uppercase tracking-[2px]">Geser</span>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Sec 2: Akad -->
-                    <section id="sectionAkad" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
-                        <div class="min-h-full flex flex-col justify-center items-center py-8">
-                            <h2 class="target-event-title font-serif text-brand-goldMain text-center reveal-item" data-target="event-title">Detail Acara</h2>
-                            <div id="prevTeksPengantar" class="target-event-pengantar font-sans text-[11px] text-gray-300 text-center" data-target="event-pengantar"></div>
-                            <div class="w-full mb-3">
-                                <div id="cardAkad" class="glass-card target-akad-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center" data-target="akad-card">
-                                    
-                                    <!-- Garis Event Atas Akad -->
-                                    <div class="target-akad-line w-24 h-[2px] bg-gradient-to-r from-transparent via-brand-goldMain to-transparent" data-target="akad-line"></div>
-                                    
-                                    <h3 id="prevTitleAkad" class="target-event-title font-serif text-brand-goldMain" data-target="event-title">Akad Nikah</h3>
-                                    
-                                    <!-- Kotak Info Akad -->
-                                    <div class="target-akad-box bg-[#050A1F]/60 rounded-xl p-4 border border-brand-goldMain/10" data-target="akad-box">
-                                        <!-- Garis Vertikal Tengah Akad -->
-                                        <div class="target-akad-divider" data-target="akad-divider"></div>
-                                        
-                                        <div class="grid grid-cols-2 gap-2 relative z-10 pointer-events-none">
-                                            <!-- Box Kiri (Tanggal) -->
-                                            <div class="px-1 flex flex-col items-center">
-                                                <p class="target-akad-label-tgl font-sans uppercase tracking-[1px] text-brand-goldLight/80 pointer-events-auto" data-target="akad-label-tgl">Tanggal</p>
-                                                <div class="target-akad-line-tgl pointer-events-auto" data-target="akad-line-tgl"></div>
-                                                <!-- UBAH BARIS INI -->
-                                                <p id="prevTglAkad" class="target-akad-tanggal font-serif text-white pointer-events-auto mt-1" data-target="akad-tanggal">...</p>
-                                            </div>
-                                            <!-- Box Kanan (Waktu) -->
-                                            <div class="px-1 flex flex-col items-center">
-                                                <p class="target-akad-label-wkt font-sans uppercase tracking-[1px] text-brand-goldLight/80 pointer-events-auto" data-target="akad-label-wkt">Waktu</p>
-                                                <div class="target-akad-line-wkt pointer-events-auto" data-target="akad-line-wkt"></div>
-                                                <!-- UBAH BARIS INI -->
-                                                <p id="prevJamAkad" class="target-akad-waktu font-serif text-white pointer-events-auto mt-1" data-target="akad-waktu">...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- UBAH 3 BARIS INI -->
-                                    <p class="target-akad-label-tempat mb-1" data-target="akad-label-tempat">Tempat</p>
-                                    <p id="prevTempatAkad" class="target-akad-tempat font-serif text-brand-goldMain" data-target="akad-tempat">...</p>
-                                    <p id="prevAlamatAkad" class="target-akad-alamat font-sans text-[11px] text-gray-300" data-target="akad-alamat">...</p>
-                                </div>
-                            </div>
-                            <div id="swipeAkad" class="mt-4 flex items-center gap-2 swipe-indicator text-brand-goldMain opacity-90 reveal-item">
-                                <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                <span class="font-sans text-[10px] uppercase tracking-[2px]">Geser Ke Resepsi</span>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Sec 3: Resepsi -->
-                    <section id="sectionResepsi" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
-                        <div class="min-h-full flex flex-col justify-center items-center py-8">
-                            <div class="w-full mb-6">
-                                <div id="cardResepsi" class="glass-card target-resepsi-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center" data-target="resepsi-card">
-                                    
-                                    <!-- Garis Event Atas Resepsi -->
-                                    <div class="target-resepsi-line w-24 h-[2px] bg-gradient-to-r from-transparent via-brand-goldMain to-transparent" data-target="resepsi-line"></div>
-                                    
-                                    <h3 class="target-event-title font-serif text-brand-goldMain" data-target="event-title">Resepsi</h3>
-                                    
-                                    <!-- Kotak Info Resepsi -->
-                                    <div class="target-resepsi-box bg-[#050A1F]/60 rounded-xl p-4 border border-brand-goldMain/10" data-target="resepsi-box">
-                                        <!-- Garis Vertikal Tengah Resepsi -->
-                                        <div class="target-resepsi-divider" data-target="resepsi-divider"></div>
-
-                                        <div class="grid grid-cols-2 gap-2 relative z-10 pointer-events-none">
-                                            <!-- Box Kiri (Tanggal) -->
-                                            <div class="px-1 flex flex-col items-center">
-                                                <p class="target-resepsi-label-tgl font-sans uppercase tracking-[1px] text-brand-goldLight/80 pointer-events-auto" data-target="resepsi-label-tgl">Tanggal</p>
-                                                <div class="target-resepsi-line-tgl pointer-events-auto" data-target="resepsi-line-tgl"></div>
-                                                
-                                                <span id="prevHariResepsi" class="target-resepsi-hari text-brand-goldLight pointer-events-auto" data-target="resepsi-hari">...</span>
-                                                <span id="prevTanggalResepsi" class="target-resepsi-tanggal text-white font-bold my-1 pointer-events-auto" data-target="resepsi-tanggal">...</span>
-                                                <span id="prevBulanResepsi" class="target-resepsi-bulan text-brand-goldLight pointer-events-auto" data-target="resepsi-bulan">...</span>
-                                                <span id="prevTahunResepsi" class="target-resepsi-tahun text-gray-400 pointer-events-auto" data-target="resepsi-tahun">...</span>
-                                            </div>
-                                            <!-- Box Kanan (Waktu) -->
-                                            <div class="px-1 flex flex-col items-center">
-                                                <p class="target-resepsi-label-wkt font-sans uppercase tracking-[1px] text-brand-goldLight/80 pointer-events-auto" data-target="resepsi-label-wkt">Waktu</p>
-                                                <div class="target-resepsi-line-wkt pointer-events-auto" data-target="resepsi-line-wkt"></div>
-
-                                                <p id="prevJamResepsi" class="target-resepsi-waktu font-serif text-white mt-auto mb-auto pointer-events-auto" data-target="resepsi-waktu">...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- PISAHKAN TEMPAT RESEPSI DI SINI -->
-                                    <div class="mt-4 flex flex-col items-center w-full"> 
-                                        <p class="target-resepsi-label-tempat mb-1" data-target="resepsi-label-tempat">Tempat</p>
-                                        <p id="prevTempatResepsi" class="target-resepsi-tempat font-serif text-brand-goldMain" data-target="resepsi-tempat">...</p>
-                                        <p id="prevAlamatResepsi" class="target-event-alamat font-sans text-[11px] text-gray-300" data-target="event-alamat">...</p>
-                                    </div>
-                                    <div id="prevKetResepsiContainer" class="hidden pt-3 mt-4 border-t border-brand-goldMain/10 w-full">
-                                        <p id="prevKetResepsi" class="target-event-ket text-[10px] text-brand-goldLight italic bg-brand-goldMain/5 p-2 rounded border border-brand-goldMain/20" data-target="event-ket"></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Sec 4: Penutup -->
-                    <section id="sectionPenutup" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
-                        <div class="min-h-full flex flex-col justify-center items-center py-8">
-                            <div class="glass-card target-penutup-card rounded-2xl p-6 text-center w-full" data-target="penutup-card">
-                                <div id="prevTeksPenutup" class="target-closing-teks font-sans text-[11px] text-gray-300 leading-relaxed" data-target="closing-teks"></div>
-                                <p id="prevSalamHormat" class="target-closing-salam font-serif text-brand-goldMain reveal-item" data-target="closing-salam">Kami yang berbahagia</p>
-                                <h3 id="prevHormat" class="target-closing-names text-brand-goldLight reveal-item" data-target="closing-names">... & ...</h3>
-                            </div>
-                            <div id="swipePenutup" class="mt-6 flex items-center justify-center gap-2 swipe-indicator text-brand-goldMain opacity-90 reveal-item hidden">
-                                <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                <span class="font-sans text-[10px] uppercase tracking-[2px]">Turut Mengundang</span>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Sec 5: Turut Mengundang -->
-                    <section id="sectionTurutMengundang" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5 hidden">
-                        <div class="min-h-full flex flex-col justify-center items-center py-8">
-                            <div class="glass-card target-turut-card rounded-2xl p-6 relative text-center reveal-item w-full" data-target="turut-card">
-                                <h3 class="target-turut-title font-serif text-xl text-brand-goldMain" data-target="turut-title">Turut Mengundang</h3>
-                                <ul id="prevTurutMengundang" class="target-turut-list font-sans text-[11px] text-gray-300 text-left flex flex-col gap-2" data-target="turut-list"></ul>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==========================================
-         KANAN: EDITOR FORM
-         ========================================== -->
-  <div id="editorPanel" class="w-full lg:w-1/2 h-[50vh] lg:h-screen overflow-y-auto bg-editor-bg p-6 lg:p-8 font-ui">
-       <div class="flex justify-between items-center mb-6 sticky top-0 bg-editor-bg/95 backdrop-blur z-20 py-2 border-b border-editor-border">
-            <h2 class="text-2xl text-brand-goldMain font-serif italic tracking-wide">Form Edit Data</h2>
-            
-            <div class="flex items-center gap-2">
-                <!-- Undo / Redo Buttons -->
-                <div class="flex items-center bg-[#151a2d] border border-brand-goldMain/30 rounded-lg overflow-hidden h-[36px]">
-                    <button id="btnUndo" onclick="undo()" class="px-3 h-full hover:bg-brand-goldMain/20 text-brand-goldLight transition-colors border-r border-brand-goldMain/30 disabled:opacity-30 disabled:cursor-not-allowed" title="Undo (Ctrl+Z)">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
-                    </button>
-                    <button id="btnRedo" onclick="redo()" class="px-3 h-full hover:bg-brand-goldMain/20 text-brand-goldLight transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Redo (Ctrl+Y)">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path></svg>
-                    </button>
-                </div>
-
-                <button id="btnSimpan" onclick="simpanPerubahan()" class="bg-green-600 hover:bg-green-500 text-white px-5 py-2 rounded-lg font-medium shadow-lg transition-colors text-sm flex items-center gap-2 h-[36px]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                    Simpan
-                </button>
-            </div>
-        </div>
-
-        <form id="editorForm" onsubmit="event.preventDefault();" class="space-y-4">
-            
-            <fieldset class="border-brand-goldMain/40 bg-[#151a2d] relative overflow-hidden shadow-xl">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-brand-goldMain/10 rounded-full blur-xl pointer-events-none"></div>
-                <legend class="text-brand-goldLight font-bold bg-[#151a2d] px-2 rounded flex items-center gap-2">
-                    Desain & Layout Visual
-                </legend>
-
-                <!-- Petunjuk Keyboard Shortcut -->
-                <div class="text-xs text-brand-goldLight bg-brand-goldMain/10 border border-brand-goldMain/20 p-2 rounded mb-4 flex items-start gap-2 relative z-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-                    <span><strong>Pro Tips:</strong> 
-                        <br>• Tahan <b>Ctrl + Klik</b> (atau Cmd+Klik) komponen di *Live Preview* untuk memilih lebih dari 1 komponen.
-                        <br>• Tahan <b>Shift + Panah (Atas/Bawah/Kiri/Kanan)</b> untuk menggeser komponen.
-                        <br>• Tekan <b>Delete/Backspace</b> atau klik Ikon Sampah untuk menghapus komponen.
-                    </span>
-                </div>
-                
-                <div class="input-group mb-4 relative z-10">
-                    <label class="input-label text-brand-goldMain">1. Pilih Bagian yang Diedit:</label>
-                    <select id="editTargetSelect" class="input-field border-brand-goldMain/50 font-bold bg-[#0A1128]" onchange="changeEditTarget()">
-                        <optgroup label="Kotak Kontainer (Cards)">
-                            <option value="cover-card">Card Cover Depan</option>
-                            <option value="profil-card">Card Profil Pengantin</option>
-                            <option value="akad-card">Card Akad Nikah</option>
-                            <option value="resepsi-card">Card Resepsi</option>
-                            <option value="penutup-card">Card Penutup</option>
-                            <option value="turut-card">Card Turut Mengundang</option>
-                        </optgroup>
+                <!-- Sec 2: Akad -->
+                <section id="sectionAkad" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <div class="min-h-full flex flex-col justify-center items-center py-8">
+                        <h2 class="target-event-title font-serif text-brand-goldMain text-center reveal-item" data-target="event-title">Detail Acara</h2>
+                        <div id="prevTeksPengantar" class="target-event-pengantar font-sans text-[11px] text-gray-300 text-center" data-target="event-pengantar"></div>
                         
-                        <optgroup label="Halaman Depan (Cover)">
-                            <option value="cover-title">Teks "The Wedding Of"</option>
-                            <option value="cover-names">Nama Pengantin (Cover)</option>
-                            <option value="cover-yth">Teks "Kepada Yth. Tamu Undangan"</option>
-                        </optgroup>
-                        <optgroup label="Halaman Profil">
-                            <option value="profile-pembuka">Teks Pembuka</option>
-                            <option value="profile-title">Judul "Mempelai Pria/Wanita"</option>
-                            <option value="profile-names">Nama Pengantin Utama</option>
-                            <option value="profile-ampersand">Simbol "&" (Dan)</option>
-                            <option value="profile-parents">Teks Nama Orang Tua</option>
-                        </optgroup>
-                        <optgroup label="Halaman Acara (AKAD)">
-                            <option value="akad-line">Garis Emas Atas (Akad)</option>
-                            <option value="event-title">Judul "Akad Nikah / Resepsi"</option>
-                            <option value="akad-box">Kotak Info Tgl/Waktu (Akad)</option>
-                            <option value="akad-divider">Garis Tengah di Kotak (Akad)</option>
-                            <option value="akad-label-tgl">Teks Judul "Tanggal" (Akad)</option>
-                            <option value="akad-line-tgl">Garis Bawah "Tanggal" (Akad)</option>
-                            <option value="akad-label-wkt">Teks Judul "Waktu" (Akad)</option>
-                            <option value="akad-line-wkt">Garis Bawah "Waktu" (Akad)</option>
-                            
-                            <!-- TAMBAHKAN OPSI BARU INI -->
-                            <option value="akad-tanggal">Teks Info Tanggal (Akad)</option>
-                            <option value="akad-waktu">Teks Info Waktu (Akad)</option>
-                            <option value="akad-label-tempat">Teks Label "Tempat" (Akad)</option>
-                            <option value="akad-tempat">Nama Tempat (Akad)</option>
-                            <option value="akad-alamat">Alamat Lengkap (Akad)</option>
-                            <!-- (Biarkan event-text jika masih digunakan untuk referensi global lain) -->
-                            <option value="event-text">Info Acara Biasa (Global)</option>
-                        </optgroup>
-                        <optgroup label="Halaman Acara (RESEPSI)">
-                            <option value="resepsi-line">Garis Emas Atas (Resepsi)</option>
-                            <option value="resepsi-box">Kotak Info Tgl/Waktu (Resepsi)</option>
-                            <option value="resepsi-waktu">Teks Info Waktu (Resepsi)</option>
-                            <option value="resepsi-label-tempat">Teks Label "Tempat" (Resepsi)</option>
-                            <option value="resepsi-tempat">Nama Tempat (Resepsi)</option>
-                            <option value="resepsi-divider">Garis Tengah di Kotak (Resepsi)</option>
-                            <option value="resepsi-label-tgl">Teks Judul "Tanggal" (Resepsi)</option>
-                            <option value="resepsi-line-tgl">Garis Bawah "Tanggal" (Resepsi)</option>
-                            <option value="resepsi-label-wkt">Teks Judul "Waktu" (Resepsi)</option>
-                            <option value="resepsi-line-wkt">Garis Bawah "Waktu" (Resepsi)</option>
-                            <option value="resepsi-hari">Hari Resepsi (Cth: Sabtu)</option>
-                            <option value="resepsi-tanggal">Tanggal Resepsi (Angka Besar)</option>
-                            <option value="resepsi-bulan">Bulan Resepsi (Cth: Okt)</option>
-                            <option value="resepsi-tahun">Tahun Resepsi</option>
-                            <option value="event-alamat">Teks Alamat Lengkap</option>
-                            <option value="event-ket">Keterangan Tambahan</option>
-                        </optgroup>
-                        <optgroup label="Halaman Penutup">
-                            <option value="closing-teks">Teks Penutup</option>
-                            <option value="closing-salam">Teks Salam ("Kami yg berbahagia")</option>
-                            <option value="closing-names">Nama Pengantin Bawah</option>
-                            <option value="turut-title">Judul "Turut Mengundang"</option>
-                            <option value="turut-list">Daftar "Turut Mengundang"</option>
-                        </optgroup>
-                    </select>
-                </div>
+                        <div class="w-full mb-3">
+                            <div class="glass-card target-akad-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center" data-target="akad-card">
+                                <div class="target-akad-line w-24 h-[2px] bg-gradient-to-r from-transparent via-brand-goldMain to-transparent" data-target="akad-line"></div>
+                                <h3 id="prevTitleAkad" class="target-event-title font-serif text-brand-goldMain" data-target="event-title">Akad Nikah</h3>
+                                
+                                <div class="target-akad-box bg-[#050A1F]/60 rounded-xl p-4 border border-brand-goldMain/10" data-target="akad-box">
+                                    <div class="target-akad-divider" data-target="akad-divider"></div>
+                                    <div class="grid grid-cols-2 gap-2 relative z-10 pointer-events-none">
+                                        <div class="px-1 flex flex-col items-center">
+                                            <p class="target-akad-label-tgl font-sans uppercase tracking-[1px] text-brand-goldLight/80" data-target="akad-label-tgl">Tanggal</p>
+                                            <div class="target-akad-line-tgl" data-target="akad-line-tgl"></div>
+                                            <p id="prevTglAkad" class="target-akad-tanggal font-serif text-white mt-1" data-target="akad-tanggal">...</p>
+                                        </div>
+                                        <div class="px-1 flex flex-col items-center">
+                                            <p class="target-akad-label-wkt font-sans uppercase tracking-[1px] text-brand-goldLight/80" data-target="akad-label-wkt">Waktu</p>
+                                            <div class="target-akad-line-wkt" data-target="akad-line-wkt"></div>
+                                            <p id="prevJamAkad" class="target-akad-waktu font-serif text-white mt-1" data-target="akad-waktu">...</p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                <div class="grid grid-cols-2 gap-4 border-t border-brand-goldMain/20 pt-4 relative z-10">
-                    <div class="input-group mb-0 col-span-2">
-                        <label class="input-label">Jenis Font (Abaikan jika elemen berupa Garis/Kotak)</label>
-                        <select id="editFontFamily" class="input-field" onchange="updatePreviewStyles()">
-                            <optgroup label="Teks Sambung (Script/Handwriting)">
-                                <option value="'Great Vibes', cursive">Great Vibes</option>
-                                <option value="'Dancing Script', cursive">Dancing Script</option>
-                                <option value="'Parisienne', cursive">Parisienne</option>
-                                <option value="'Sacramento', cursive">Sacramento</option>
-                                <option value="'Alex Brush', cursive">Alex Brush</option>
-                                <option value="'Tangerine', cursive">Tangerine</option>
-                                <option value="'Pinyon Script', cursive">Pinyon Script</option>
-                                <option value="'Allura', cursive">Allura</option>
-                                <option value="'Italianno', cursive">Italianno</option>
-                                <option value="'Rouge Script', cursive">Rouge Script</option>
-                            </optgroup>
-                            <optgroup label="Klasik & Formal (Serif)">
-                                <option value="'Playfair Display', serif">Playfair Display</option>
-                                <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
-                                <option value="'Cinzel', serif">Cinzel</option>
-                            </optgroup>
-                            <optgroup label="Modern & Bersih (Sans-Serif)">
-                                <option value="'Lato', sans-serif">Lato</option>
-                                <option value="'Montserrat', sans-serif">Montserrat</option>
-                                <option value="'Poppins', sans-serif">Poppins</option>
-                            </optgroup>
-                        </select>
+                                <p class="target-akad-label-tempat mb-1" data-target="akad-label-tempat">Tempat</p>
+                                <p id="prevTempatAkad" class="target-akad-tempat font-serif text-brand-goldMain" data-target="akad-tempat">...</p>
+                                <p id="prevAlamatAkad" class="target-akad-alamat font-sans text-[11px] text-gray-300" data-target="akad-alamat">...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 flex items-center gap-2 swipe-indicator text-brand-goldMain opacity-90 reveal-item">
+                            <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            <span class="font-sans text-[10px] uppercase tracking-[2px]">Geser Ke Resepsi</span>
+                        </div>
                     </div>
-                    <div class="input-group mb-0 col-span-2 md:col-span-1">
-                        <label class="input-label">Ukuran (Font/Objek)</label>
-                        <input type="range" id="editFontSize" min="0.5" max="3" step="0.1" value="1" class="w-full mt-3 accent-brand-goldMain" oninput="updatePreviewStyles()">
-                    </div>
-                    <div class="input-group mb-0 col-span-2 md:col-span-1">
-                        <label class="input-label">Spasi Bawah (Margin)</label>
-                        <input type="range" id="editSpace" min="-100" max="200" step="2" value="0" class="w-full mt-3 accent-brand-goldMain" oninput="updatePreviewStyles()">
-                    </div>
-                    <div class="input-group mb-0 col-span-2 md:col-span-1">
-                        <label class="input-label">Posisi Y (Atas/Bawah)</label>
-                        <input type="range" id="editPosY" min="-250" max="250" step="2" value="0" class="w-full mt-3 accent-brand-goldMain" oninput="updatePreviewStyles()">
-                    </div>
-                    <div class="input-group mb-0 col-span-2 md:col-span-1">
-                        <label class="input-label text-brand-goldLight">Posisi X (Kiri/Kanan)</label>
-                        <input type="range" id="editPosX" min="-250" max="250" step="2" value="0" class="w-full mt-3 accent-brand-goldMain" oninput="updatePreviewStyles()">
-                    </div>
+                </section>
 
-                    <div class="input-group mb-0 col-span-2 md:col-span-1 border-t border-brand-goldMain/20 pt-3">
-                        <label class="input-label text-brand-goldLight">Lebar (W)</label>
-                        <input type="range" id="editW" min="-200" max="200" step="2" value="0" class="w-full mt-3 accent-brand-goldMain" oninput="updatePreviewStyles()">
-                    </div>
-                    <div class="input-group mb-0 col-span-2 md:col-span-1 border-t border-brand-goldMain/20 pt-3">
-                        <label class="input-label text-brand-goldLight">Tinggi (H)</label>
-                        <input type="range" id="editH" min="-200" max="200" step="2" value="0" class="w-full mt-3 accent-brand-goldMain" oninput="updatePreviewStyles()">
-                    </div>
+                <!-- Sec 3: Resepsi -->
+                <section id="sectionResepsi" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <div class="min-h-full flex flex-col justify-center items-center py-8">
+                        <div class="w-full mb-6">
+                            <div class="glass-card target-resepsi-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center" data-target="resepsi-card">
+                                <div class="target-resepsi-line w-24 h-[2px] bg-gradient-to-r from-transparent via-brand-goldMain to-transparent" data-target="resepsi-line"></div>
+                                <h3 class="target-event-title font-serif text-brand-goldMain" data-target="event-title">Resepsi</h3>
+                                
+                                <div class="target-resepsi-box bg-[#050A1F]/60 rounded-xl p-4 border border-brand-goldMain/10" data-target="resepsi-box">
+                                    <div class="target-resepsi-divider" data-target="resepsi-divider"></div>
+                                    <div class="grid grid-cols-2 gap-2 relative z-10 pointer-events-none">
+                                        <div class="px-1 flex flex-col items-center">
+                                            <p class="target-resepsi-label-tgl font-sans uppercase tracking-[1px] text-brand-goldLight/80" data-target="resepsi-label-tgl">Tanggal</p>
+                                            <div class="target-resepsi-line-tgl" data-target="resepsi-line-tgl"></div>
+                                            <span id="prevHariResepsi" class="target-resepsi-hari text-brand-goldLight" data-target="resepsi-hari">...</span>
+                                            <span id="prevTanggalResepsi" class="target-resepsi-tanggal text-white font-bold my-1" data-target="resepsi-tanggal">...</span>
+                                            <span id="prevBulanResepsi" class="target-resepsi-bulan text-brand-goldLight" data-target="resepsi-bulan">...</span>
+                                            <span id="prevTahunResepsi" class="target-resepsi-tahun text-gray-400" data-target="resepsi-tahun">...</span>
+                                        </div>
+                                        <div class="px-1 flex flex-col items-center">
+                                            <p class="target-resepsi-label-wkt font-sans uppercase tracking-[1px] text-brand-goldLight/80" data-target="resepsi-label-wkt">Waktu</p>
+                                            <div class="target-resepsi-line-wkt" data-target="resepsi-line-wkt"></div>
+                                            <p id="prevJamResepsi" class="target-resepsi-waktu font-serif text-white mt-auto mb-auto" data-target="resepsi-waktu">...</p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                </div>
-            </fieldset>
+                                <div class="mt-4 flex flex-col items-center w-full"> 
+                                    <p class="target-resepsi-label-tempat mb-1" data-target="resepsi-label-tempat">Tempat</p>
+                                    <p id="prevTempatResepsi" class="target-resepsi-tempat font-serif text-brand-goldMain" data-target="resepsi-tempat">...</p>
+                                    <p id="prevAlamatResepsi" class="target-event-alamat font-sans text-[11px] text-gray-300" data-target="event-alamat">...</p>
+                                </div>
+                                
+                                <div id="prevKetResepsiContainer" class="hidden pt-3 mt-4 border-t border-brand-goldMain/10 w-full">
+                                    <p id="prevKetResepsi" class="target-event-ket text-[10px] text-brand-goldLight italic bg-brand-goldMain/5 p-2 rounded border border-brand-goldMain/20" data-target="event-ket"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-            <fieldset>
-                <legend>Pengaturan Umum</legend>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="input-group">
-                        <label class="input-label">Jenis Undangan</label>
-                        <select id="editJenisUndangan" class="input-field" onchange="updatePreview()">
-                            <option value="muslim">Muslim</option>
-                            <option value="kristen">Kristen</option>
-                        </select>
+                <!-- Sec 4: Penutup -->
+                <section id="sectionPenutup" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <div class="min-h-full flex flex-col justify-center items-center py-8">
+                        <div class="glass-card target-penutup-card rounded-2xl p-6 text-center w-full" data-target="penutup-card">
+                            <div id="prevTeksPenutup" class="target-closing-teks font-sans text-[11px] text-gray-300 leading-relaxed" data-target="closing-teks"></div>
+                            <p id="prevSalamHormat" class="target-closing-salam font-serif text-brand-goldMain reveal-item" data-target="closing-salam">Kami yang berbahagia</p>
+                            <h3 id="prevHormat" class="target-closing-names text-brand-goldLight reveal-item" data-target="closing-names">... & ...</h3>
+                        </div>
+                        <div id="swipePenutup" class="mt-6 flex items-center justify-center gap-2 swipe-indicator text-brand-goldMain opacity-90 reveal-item hidden">
+                            <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            <span class="font-sans text-[10px] uppercase tracking-[2px]">Turut Mengundang</span>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label class="input-label">Susunan Tampil</label>
-                        <select id="editSusunan" class="input-field" onchange="updatePreview()">
-                            <option value="wanita">Wanita Dulu</option>
-                            <option value="pria">Pria Dulu</option>
-                        </select>
-                    </div>
-                </div>
-            </fieldset>
+                </section>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <fieldset>
-                    <legend>Mempelai Wanita</legend>
-                    <div class="input-group"><label class="input-label">Nama Panggilan</label><input type="text" id="editWpanggilan" class="input-field" oninput="updatePreview()"></div>
-                    <div class="input-group"><label class="input-label">Nama Lengkap & Gelar</label><input type="text" id="editWnama" class="input-field" oninput="updatePreview()"></div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="input-group"><label class="input-label">Anak Ke-</label><input type="text" id="editWanak" class="input-field" oninput="updatePreview()"></div>
-                        <div class="input-group col-span-2"><label class="input-label">Nama Bapak</label><input type="text" id="editWbapak" class="input-field" oninput="updatePreview()"></div>
+                <!-- Sec 5: Turut Mengundang -->
+                <section id="sectionTurutMengundang" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5 hidden">
+                    <div class="min-h-full flex flex-col justify-center items-center py-8">
+                        <div class="glass-card target-turut-card rounded-2xl p-6 relative text-center reveal-item w-full" data-target="turut-card">
+                            <h3 class="target-turut-title font-serif text-xl text-brand-goldMain" data-target="turut-title">Turut Mengundang</h3>
+                            <ul id="prevTurutMengundang" class="target-turut-list font-sans text-[11px] text-gray-300 text-left flex flex-col gap-2" data-target="turut-list"></ul>
+                        </div>
                     </div>
-                    <div class="input-group"><label class="input-label">Nama Ibu</label><input type="text" id="editWibu" class="input-field" oninput="updatePreview()"></div>
-                </fieldset>
-
-                <fieldset>
-                    <legend>Mempelai Pria</legend>
-                    <div class="input-group"><label class="input-label">Nama Panggilan</label><input type="text" id="editPpanggilan" class="input-field" oninput="updatePreview()"></div>
-                    <div class="input-group"><label class="input-label">Nama Lengkap & Gelar</label><input type="text" id="editPnama" class="input-field" oninput="updatePreview()"></div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="input-group"><label class="input-label">Anak Ke-</label><input type="text" id="editPanak" class="input-field" oninput="updatePreview()"></div>
-                        <div class="input-group col-span-2"><label class="input-label">Nama Bapak</label><input type="text" id="editPbapak" class="input-field" oninput="updatePreview()"></div>
-                    </div>
-                    <div class="input-group"><label class="input-label">Nama Ibu</label><input type="text" id="editPibu" class="input-field" oninput="updatePreview()"></div>
-                </fieldset>
+                </section>
             </div>
-
-            <fieldset>
-                <legend>Acara Akad / Pemberkatan</legend>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="input-group"><label class="input-label">Hari & Tgl Akad</label><input type="text" id="editTglAkad" class="input-field" oninput="updatePreview()"></div>
-                    <div class="input-group"><label class="input-label">Waktu Akad</label><input type="text" id="editJamAkad" class="input-field" oninput="updatePreview()"></div>
-                </div>
-                <div class="input-group"><label class="input-label">Tempat Akad</label><input type="text" id="editTempatAkad" class="input-field" oninput="updatePreview()"></div>
-                <div class="input-group"><label class="input-label">Alamat Akad</label><textarea id="editAlamatAkad" class="input-field" rows="2" oninput="updatePreview()"></textarea></div>
-            </fieldset>
-
-            <fieldset>
-                <legend>Acara Resepsi</legend>
-                <div class="grid grid-cols-4 gap-2 mb-2">
-                    <div class="input-group mb-0"><label class="input-label text-[10px]">Hari</label><input type="text" id="editHariResepsi" class="input-field px-2 text-center" placeholder="Sabtu" oninput="updatePreview()"></div>
-                    <div class="input-group mb-0"><label class="input-label text-[10px]">Tanggal</label><input type="text" id="editTanggalResepsi" class="input-field px-2 text-center" placeholder="24" oninput="updatePreview()"></div>
-                    <div class="input-group mb-0"><label class="input-label text-[10px]">Bulan</label><input type="text" id="editBulanResepsi" class="input-field px-2 text-center" placeholder="Okt" oninput="updatePreview()"></div>
-                    <div class="input-group mb-0"><label class="input-label text-[10px]">Tahun</label><input type="text" id="editTahunResepsi" class="input-field px-2 text-center" placeholder="2026" oninput="updatePreview()"></div>
-                </div>
-
-                <div class="input-group"><label class="input-label">Waktu Resepsi</label><input type="text" id="editJamResepsi" class="input-field" oninput="updatePreview()"></div>
-                <div class="input-group"><label class="input-label">Tempat Resepsi</label><input type="text" id="editTempatResepsi" class="input-field" oninput="updatePreview()"></div>
-                <div class="input-group"><label class="input-label">Alamat Resepsi</label><textarea id="editAlamatResepsi" class="input-field" rows="2" oninput="updatePreview()"></textarea></div>
-                <div class="input-group"><label class="input-label">Keterangan Tambahan</label><input type="text" id="editKetResepsi" class="input-field" oninput="updatePreview()"></div>
-            </fieldset>
-
-            <fieldset>
-                <legend>Teks & Kalimat</legend>
-                <div class="input-group"><label class="input-label">Hormat Kami (Penutup)</label><textarea id="editHormat" class="input-field" rows="2" oninput="updatePreview()"></textarea></div>
-                <div class="input-group"><label class="input-label">Turut Mengundang (Pisahkan dgn Enter)</label><textarea id="editTurut" class="input-field" rows="3" oninput="updatePreview()"></textarea></div>
-                <div class="input-group"><label class="input-label">Teks Pembuka</label><textarea id="editPembuka" class="input-field" rows="4" oninput="updatePreview()"></textarea></div>
-                <div class="input-group"><label class="input-label">Teks Pengantar Acara</label><textarea id="editPengantar" class="input-field" rows="2" oninput="updatePreview()"></textarea></div>
-                <div class="input-group"><label class="input-label">Teks Penutup</label><textarea id="editPenutup" class="input-field" rows="4" oninput="updatePreview()"></textarea></div>
-            </fieldset>
-        </form>
+        </div>
     </div>
 
     <audio id="bgMusic" loop preload="auto">
@@ -688,13 +302,16 @@
     </audio>
 
     <script>
-        // INIT SUPABASE
+        // INIT SUPABASE (Read-Only)
         const SUPABASE_URL = 'https://qnnacckoyfzrmvobwccb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFubmFjY2tveWZ6cm12b2J3Y2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwOTIxNTEsImV4cCI6MjEwNzY2ODE1MX0.XbLOSpq1ylDjkxrDqoQBJIFAZp6RhsDiCiXn6kF9NjA';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let currentWeddingId = null;
         let observer = null;
+        let isMusicPlaying = false;
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggleBtnPreview');
+        const btnPlay = document.getElementById('btnPlayMusic');
 
         const defaultDesignConfig = {
             'cover-title': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
@@ -706,7 +323,6 @@
             'profile-ampersand': { font: "'Great Vibes', cursive", size: 1, x: 0, y: 0, mb: 0 },
             'profile-parents': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
             'event-pengantar': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
-            
             'akad-line': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
             'akad-box': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
             'akad-divider': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
@@ -714,21 +330,14 @@
             'akad-line-tgl': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
             'akad-label-wkt': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
             'akad-line-wkt': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
-            
-            /* --- TAMBAHAN TARGET AKAD MANDIRI --- */
             'akad-tanggal': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
             'akad-waktu': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
             'akad-label-tempat': { font: "'Inter', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
             'akad-tempat': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, mb: 0 },
             'akad-alamat': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
-            /* ------------------------------------ */
-
-            /* --- TAMBAHAN TARGET RESEPSI MANDIRI --- */
             'resepsi-waktu': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
             'resepsi-label-tempat': { font: "'Inter', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
             'resepsi-tempat': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, mb: 0 },
-            /* ------------------------------------ */
-            
             'resepsi-line': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
             'resepsi-box': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
             'resepsi-divider': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
@@ -736,7 +345,6 @@
             'resepsi-line-tgl': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
             'resepsi-label-wkt': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
             'resepsi-line-wkt': { font: "inherit", size: 1, x: 0, y: 0, mb: 0 },
-            
             'event-title': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, mb: 0 },
             'event-text': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
             'resepsi-hari': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
@@ -752,13 +360,6 @@
             'turut-list': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, mb: 0 }
         };
 
-        let designConfigMap = JSON.parse(localStorage.getItem('designConfigMap')) || { ...defaultDesignConfig };
-        
-        for(let key in defaultDesignConfig) { 
-            if(!designConfigMap[key]) designConfigMap[key] = defaultDesignConfig[key]; 
-            else if(designConfigMap[key].x === undefined) designConfigMap[key].x = 0;
-        }
-
         function createFallingLeaves() {
             const container = document.getElementById('leaf-container');
             setInterval(() => {
@@ -773,11 +374,6 @@
             }, 800); 
         }
 
-        let isMusicPlaying = false;
-        const bgMusic = document.getElementById('bgMusic');
-        const musicToggle = document.getElementById('musicToggleBtnPreview');
-        const btnPlay = document.getElementById('btnPlayMusic');
-
         function openInvitation() {
             document.getElementById('coverPage').classList.add('hide-cover');
             const main = document.getElementById('mainContent');
@@ -786,107 +382,6 @@
             btnPlay.classList.remove('hidden');
             bgMusic.play().then(() => { isMusicPlaying = true; musicToggle.classList.remove('paused'); }).catch(() => {});
         }
-
-        // ==========================================
-        // SISTEM UNDO & REDO HISTORY
-        // ==========================================
-        let historyStack = [];
-        let historyIndex = -1;
-        const MAX_HISTORY = 30; // Batas maksimal riwayat yang disimpan
-
-        // Fungsi untuk mencatat status saat ini ke riwayat
-        function saveHistory() {
-            // Jika ada redo yang belum dilakukan, buang riwayat di depannya
-            if (historyIndex < historyStack.length - 1) {
-                historyStack = historyStack.slice(0, historyIndex + 1);
-            }
-            
-            // Simpan salinan (deep copy) dari keadaan designConfigMap saat ini
-            historyStack.push(JSON.parse(JSON.stringify(designConfigMap)));
-            
-            // Batasi memori riwayat
-            if (historyStack.length > MAX_HISTORY) {
-                historyStack.shift();
-            }
-            historyIndex = historyStack.length - 1;
-            updateUndoRedoButtons();
-        }
-
-        
-        function updateUndoRedoButtons() {
-            const btnUndo = document.getElementById('btnUndo');
-            const btnRedo = document.getElementById('btnRedo');
-            if (btnUndo) btnUndo.disabled = historyIndex <= 0;
-            if (btnRedo) btnRedo.disabled = historyIndex >= historyStack.length - 1;
-        }
-
-        function undo() {
-            if (historyIndex > 0) {
-                historyIndex--;
-                applyStateFromHistory(historyStack[historyIndex]);
-            }
-        }
-
-        function redo() {
-            if (historyIndex < historyStack.length - 1) {
-                historyIndex++;
-                applyStateFromHistory(historyStack[historyIndex]);
-            }
-        }
-
-
-        // ==========================================
-        // FUNGSI MENGHAPUS KOMPONEN
-        // ==========================================
-        function deleteSelected() {
-            if (selectedTargets.length === 0) return;
-
-            // Tandai komponen sebagai 'terhapus' di config
-            selectedTargets.forEach(t => {
-                if (!designConfigMap[t]) designConfigMap[t] = {};
-                designConfigMap[t].deleted = true;
-            });
-
-            // Terapkan perubahan ke layar Preview
-            applyAllDesignConfig();
-
-            // Simpan history untuk Undo/Redo
-            if (typeof saveHistory === 'function') saveHistory();
-
-            // Bersihkan state seleksi dan sembunyikan toolbar
-            selectedTargets = [];
-            applyHighlight();
-            localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
-        }
-
-
-        function applyStateFromHistory(state) {
-            // Terapkan salinan state yang lama kembali ke peta desain aktif
-            designConfigMap = JSON.parse(JSON.stringify(state));
-            localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
-            
-            // Terapkan secara visual
-            applyAllDesignConfig();
-            
-            // Perbarui nilai di form (jika target saat ini sedang aktif di form)
-            const activeTarget = document.getElementById('editTargetSelect').value;
-            if (designConfigMap[activeTarget]) {
-                document.getElementById('editFontFamily').value = designConfigMap[activeTarget].font;
-                document.getElementById('editFontSize').value = designConfigMap[activeTarget].size;
-                document.getElementById('editPosX').value = designConfigMap[activeTarget].x || 0;
-                document.getElementById('editPosY').value = designConfigMap[activeTarget].y || 0;
-                document.getElementById('editSpace').value = designConfigMap[activeTarget].mb || 0;
-            }
-            updateUndoRedoButtons();
-        }
-
-        // Tangkap shortcut keyboard Ctrl+Z (Undo) dan Ctrl+Y (Redo)
-        window.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                if (e.key === 'z') { e.preventDefault(); undo(); }
-                if (e.key === 'y') { e.preventDefault(); redo(); }
-            }
-        });
 
         function toggleMusic() {
             if (isMusicPlaying) { bgMusic.pause(); musicToggle.classList.add('paused'); } 
@@ -933,327 +428,72 @@
                 </div>`;
         }
 
-  async function muatData() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const id = urlParams.get('id');
-        let data = null;
-
-        // --- TAMBAHAN KODE: MODE TAMU / VIEW ONLY ---
-        if (id) {
-            // 1. Sembunyikan panel editor kanan
-            const editorPanel = document.getElementById('editorPanel');
-            if (editorPanel) editorPanel.style.display = 'none';
-            
-        // 2. Buat panel kiri (preview) menjadi full screen (sebagai background)
-            const previewPanel = document.getElementById('previewPanel');
-            if (previewPanel) {
-                previewPanel.classList.remove('lg:w-1/2', 'lg:border-r', 'border-b', 'border-editor-border', 'p-4');
-                previewPanel.classList.add('w-full', 'p-0'); // Hilangkan padding
-                // HAPUS penggantian backgroundColor='#0f0f11' agar background bintang tetap terlihat
-            }
-            
-            // 3. Sembunyikan label "Live Preview"
-            const previewLabel = document.getElementById('previewLabel');
-            if (previewLabel) previewLabel.style.display = 'none';
-
-         // 4. PERTAHANKAN UKURAN HP (MOBILE VIEW) & LETAKKAN DI TENGAH
-            const mockupContainer = document.getElementById('mockupContainer');
-            if (mockupContainer) {
-                // Hapus style bawaan (ukuran statis & border tebal)
-                mockupContainer.removeAttribute('style');
-                // Set kelas menjadi bg-transparent agar daun dan bintang di layar belakang terlihat
-                mockupContainer.className = "relative bg-transparent h-full overflow-hidden shadow-2xl mx-auto w-full max-w-[400px] z-10";
-            }
-
-            // 5. SEMBUNYIKAN MENU ALIGN SECARA PAKSA
-            const alignToolbar = document.getElementById('alignToolbar');
-            if (alignToolbar) alignToolbar.style.display = 'none';
-
-            // 6. MATIKAN EFEK HOVER (KOTAK PUTUS-PUTUS) & POINTER EVENTS PADA ELEMEN TARGET
-            // Tambahkan tag <style> khusus sementara untuk override CSS
-            const style = document.createElement('style');
-            style.innerHTML = `
-                [data-target] { cursor: default !important; pointer-events: none !important; }
-                [data-target]:hover { outline: none !important; }
-                .is-editing { outline: none !important; background: transparent !important; }
-                
-                /* --- TAMBAHAN BARU: Pastikan tombol dan link tetap bisa diklik --- */
-                button, a { pointer-events: auto !important; cursor: pointer !important; }
-            `;
-            document.head.appendChild(style);
-        }
-        // -------------------------------------------
-
-        try {
-            if (id) {
-                const res = await supabaseClient.from('data_undangan').select('*').eq('url_undangan', id).single();
-                if(res.data) data = res.data;
-            } else {
-                const res = await supabaseClient.from('data_undangan').select('*').order('updated_at', {ascending: false}).limit(1);
-                if(res.data && res.data.length > 0) data = res.data[0];
-            }
-
-            if (data) {
-                currentWeddingId = data.id;
-
-                if (data.design_config) {
-                    designConfigMap = { ...defaultDesignConfig, ...data.design_config };
-                    for(let key in defaultDesignConfig) { if(designConfigMap[key].x === undefined) designConfigMap[key].x = 0; }
-                    localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
-                }
-
-                document.getElementById('editJenisUndangan').value = data.jenisUndangan || 'muslim';
-                document.getElementById('editSusunan').value = data.susunan || 'wanita';
-                document.getElementById('editWpanggilan').value = data.wPanggilan || '';
-                document.getElementById('editWnama').value = data.wNama || '';
-                document.getElementById('editWanak').value = data.wAnak || '';
-                document.getElementById('editWbapak').value = data.wBapak || '';
-                document.getElementById('editWibu').value = data.wIbu || '';
-                document.getElementById('editPpanggilan').value = data.pPanggilan || '';
-                document.getElementById('editPnama').value = data.pNama || '';
-                document.getElementById('editPanak').value = data.pAnak || '';
-                document.getElementById('editPbapak').value = data.pBapak || '';
-                document.getElementById('editPibu').value = data.pIbu || '';
-                
-                document.getElementById('editTglAkad').value = data.tanggalAkad || '';
-                document.getElementById('editJamAkad').value = data.jamAkad || '';
-                document.getElementById('editTempatAkad').value = data.tempatAkad || '';
-                document.getElementById('editAlamatAkad').value = data.alamatAkad || '';
-                
-                let tglResepsiVal = data.tanggalResepsi || '';
-                if (tglResepsiVal.trim().startsWith('{')) {
-                    try {
-                        let parsed = JSON.parse(tglResepsiVal);
-                        document.getElementById('editHariResepsi').value = parsed.hari || '';
-                        document.getElementById('editTanggalResepsi').value = parsed.tanggal || '';
-                        document.getElementById('editBulanResepsi').value = parsed.bulan || '';
-                        document.getElementById('editTahunResepsi').value = parsed.tahun || '';
-                    } catch(e) {}
-                } else { document.getElementById('editHariResepsi').value = tglResepsiVal; }
-
-                document.getElementById('editJamResepsi').value = data.jamResepsi || '';
-                document.getElementById('editTempatResepsi').value = data.tempatResepsi || '';
-                document.getElementById('editAlamatResepsi').value = data.alamatResepsi || '';
-                document.getElementById('editKetResepsi').value = data.keteranganResepsi || '';
-                document.getElementById('editHormat').value = data.hormat || '';
-                document.getElementById('editTurut').value = data.turutMengundang || '';
-                document.getElementById('editPembuka').value = data.teksPembuka || '';
-                document.getElementById('editPengantar').value = data.teksPengantarAcara || '';
-                document.getElementById('editPenutup').value = data.teksPenutup || '';
-                
-                updatePreview(); 
-                loadPreviewStyles(); 
-            }
-        } catch (err) {}
-
-        document.getElementById('loadingScreen').classList.add('fade-out');
-        setTimeout(() => { document.getElementById('loadingScreen').style.display='none'; }, 800);
-    }
-
-        function updatePreview() {
-            const getV = (id) => document.getElementById(id).value.trim();
-            const jenis = getV('editJenisUndangan');
-            const susunan = getV('editSusunan');
-            const wp = getV('editWpanggilan') || '...';
-            const pp = getV('editPpanggilan') || '...';
+        function renderData(data) {
+            const jenis = data.jenisUndangan || 'muslim';
+            const susunan = data.susunan || 'wanita';
+            const wp = data.wPanggilan || '...';
+            const pp = data.pPanggilan || '...';
 
             const name1 = susunan === 'pria' ? pp : wp;
             const name2 = susunan === 'pria' ? wp : pp;
 
             document.getElementById('coverNames').innerHTML = `<span class="cover-word">${name1}</span><span class="cover-word" style="animation-delay:300ms">&</span><span class="cover-word" style="animation-delay:600ms">${name2}</span>`;
+            document.getElementById('prevTeksPembuka').innerHTML = formatKalimatBerurutan(data.teksPembuka);
 
-            document.getElementById('prevTeksPembuka').innerHTML = formatKalimatBerurutan(getV('editPembuka'));
-            const htmlW = generateProfileHTML(getV('editWnama'), wp, getV('editWanak'), getV('editWbapak'), getV('editWibu'), 'wanita');
-            const htmlP = generateProfileHTML(getV('editPnama'), pp, getV('editPanak'), getV('editPbapak'), getV('editPibu'), 'pria');
+            const htmlW = generateProfileHTML(data.wNama, wp, data.wAnak, data.wBapak, data.wIbu, 'wanita');
+            const htmlP = generateProfileHTML(data.pNama, pp, data.pAnak, data.pBapak, data.pIbu, 'pria');
             const div = `<div class="target-profile-ampersand text-brand-goldMain/50 reveal-item" data-target="profile-ampersand">&</div>`;
             document.getElementById('prevCoupleContainer').innerHTML = susunan === 'pria' ? (htmlP + div + htmlW) : (htmlW + div + htmlP);
 
             document.getElementById('prevTitleAkad').innerText = jenis === 'kristen' ? 'Pemberkatan' : 'Akad Nikah';
-            document.getElementById('prevTeksPengantar').innerHTML = formatKalimatBerurutan(getV('editPengantar'));
-            document.getElementById('prevTglAkad').innerText = getV('editTglAkad') || '...';
-            document.getElementById('prevJamAkad').innerText = getV('editJamAkad') || '...';
-            document.getElementById('prevTempatAkad').innerText = getV('editTempatAkad') || '...';
-            document.getElementById('prevAlamatAkad').innerText = getV('editAlamatAkad') || '...';
+            document.getElementById('prevTeksPengantar').innerHTML = formatKalimatBerurutan(data.teksPengantarAcara);
+            document.getElementById('prevTglAkad').innerText = data.tanggalAkad || '...';
+            document.getElementById('prevJamAkad').innerText = data.jamAkad || '...';
+            document.getElementById('prevTempatAkad').innerText = data.tempatAkad || '...';
+            document.getElementById('prevAlamatAkad').innerText = data.alamatAkad || '...';
 
-            document.getElementById('prevHariResepsi').innerText = getV('editHariResepsi') || 'Hari';
-            document.getElementById('prevTanggalResepsi').innerText = getV('editTanggalResepsi') || 'Tgl';
-            document.getElementById('prevBulanResepsi').innerText = getV('editBulanResepsi') || 'Bulan';
-            document.getElementById('prevTahunResepsi').innerText = getV('editTahunResepsi') || 'Tahun';
+            let tglResepsiVal = data.tanggalResepsi || '';
+            if (tglResepsiVal.trim().startsWith('{')) {
+                try {
+                    let parsed = JSON.parse(tglResepsiVal);
+                    document.getElementById('prevHariResepsi').innerText = parsed.hari || '';
+                    document.getElementById('prevTanggalResepsi').innerText = parsed.tanggal || '';
+                    document.getElementById('prevBulanResepsi').innerText = parsed.bulan || '';
+                    document.getElementById('prevTahunResepsi').innerText = parsed.tahun || '';
+                } catch(e) {}
+            } else { 
+                document.getElementById('prevHariResepsi').innerText = tglResepsiVal; 
+            }
+
+            document.getElementById('prevJamResepsi').innerText = data.jamResepsi || '...';
+            document.getElementById('prevTempatResepsi').innerText = data.tempatResepsi || '...';
+            document.getElementById('prevAlamatResepsi').innerText = data.alamatResepsi || '...';
             
-            document.getElementById('prevJamResepsi').innerText = getV('editJamResepsi') || '...';
-            document.getElementById('prevTempatResepsi').innerText = getV('editTempatResepsi') || '...';
-            document.getElementById('prevAlamatResepsi').innerText = getV('editAlamatResepsi') || '...';
-            const ket = getV('editKetResepsi');
-            if (ket) { document.getElementById('prevKetResepsiContainer').classList.remove('hidden'); document.getElementById('prevKetResepsi').innerText = ket; }
-            else { document.getElementById('prevKetResepsiContainer').classList.add('hidden'); }
+            if (data.keteranganResepsi) { 
+                document.getElementById('prevKetResepsiContainer').classList.remove('hidden'); 
+                document.getElementById('prevKetResepsi').innerText = data.keteranganResepsi; 
+            } else { 
+                document.getElementById('prevKetResepsiContainer').classList.add('hidden'); 
+            }
 
-            document.getElementById('prevTeksPenutup').innerHTML = formatKalimatBerurutan(getV('editPenutup'));
-            document.getElementById('prevHormat').innerText = getV('editHormat') || `${name1} & ${name2}`;
+            document.getElementById('prevTeksPenutup').innerHTML = formatKalimatBerurutan(data.teksPenutup);
+            document.getElementById('prevHormat').innerText = data.hormat || `${name1} & ${name2}`;
 
-            const turut = getV('editTurut');
-            if (turut) {
+            if (data.turutMengundang) {
                 document.getElementById('sectionTurutMengundang').classList.remove('hidden');
                 document.getElementById('swipePenutup').classList.remove('hidden');
-                const list = turut.split('\n').filter(l => l.trim() !== '');
+                const list = data.turutMengundang.split('\n').filter(l => l.trim() !== '');
                 document.getElementById('prevTurutMengundang').innerHTML = list.map((l,i) => `<li class="flex items-start gap-2 reveal-item" style="transition-delay:${100+(i*100)}ms"><span class="text-brand-goldMain text-[10px] mt-1 shrink-0">✧</span><span>${l.trim().replace(/^\*\s*/, '')}</span></li>`).join('');
             } else {
                 document.getElementById('sectionTurutMengundang').classList.add('hidden');
                 document.getElementById('swipePenutup').classList.add('hidden');
             }
-
-            refreshObserver();
-            applyHighlight(); 
         }
 
-        function refreshObserver() {
-            if (observer) observer.disconnect();
-            observer = new IntersectionObserver((entries) => {
-                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); else e.target.classList.remove('active'); });
-            }, { root: document.getElementById('mainContent'), threshold: 0.1 });
-            document.querySelectorAll('#preview-window .reveal-item, #preview-window .word-reveal-container').forEach(el => observer.observe(el));
-        }
-
-
-
-    let selectedTargets = [];
-        let componentGroups = JSON.parse(localStorage.getItem('componentGroups')) || []; // Menyimpan data grup
-
-        // Fungsi mengecek apakah pilihan saat ini merupakan grup utuh
-        function isSelectionGrouped() {
-            return componentGroups.some(g => g.length === selectedTargets.length && g.every(t => selectedTargets.includes(t)));
-        }
-
-        // Fungsi Visual Tombol Group
-        function updateGroupButtonState() {
-            const btn = document.getElementById('btnGroup');
-            if (!btn) return;
-            if (isSelectionGrouped()) {
-                btn.classList.add('bg-brand-goldMain', 'text-black');
-                btn.title = "Ungroup (Pisahkan)";
-            } else {
-                btn.classList.remove('bg-brand-goldMain', 'text-black');
-                btn.title = "Group (Kelompokkan)";
-            }
-        }
-
-        function toggleGroup() {
-            if (selectedTargets.length < 2 && !isSelectionGrouped()) return;
-            
-            if (isSelectionGrouped()) {
-                // Ungroup
-                componentGroups = componentGroups.filter(g => !g.some(t => selectedTargets.includes(t)));
-            } else {
-                // Group: Hapus dari grup lama (jika ada), jadikan satu grup baru
-                componentGroups = componentGroups.filter(g => !g.some(t => selectedTargets.includes(t)));
-                componentGroups.push([...selectedTargets]);
-            }
-            localStorage.setItem('componentGroups', JSON.stringify(componentGroups));
-            updateGroupButtonState();
-        }
-
-   function applyHighlight() {
-            document.querySelectorAll('.is-editing').forEach(el => el.classList.remove('is-editing'));
-            
-            selectedTargets.forEach(target => {
-                document.querySelectorAll(`.target-${target}`).forEach(el => el.classList.add('is-editing'));
-            });
-
-            const toolbar = document.getElementById('alignToolbar');
-            
-            // UBAH DISINI: Tampilkan toolbar walaupun hanya 1 target yang dipilih, 
-            // sehingga Anda bisa memusatkan 1 Grup / 1 Komponen ke tengah layar.
-            if (selectedTargets.length > 0) {
-                toolbar.classList.remove('hidden');
-                toolbar.classList.add('flex');
-                updateGroupButtonState();
-            } else {
-                toolbar.classList.add('hidden');
-                toolbar.classList.remove('flex');
-            }
-        }
-
-  function changeEditTarget() {
-            const target = document.getElementById('editTargetSelect').value;
-            
-            if (!selectedTargets.includes(target)) selectedTargets = [target];
-            
-            const config = designConfigMap[target] || {};
-            document.getElementById('editFontFamily').value = config.font || "inherit";
-            document.getElementById('editFontSize').value = config.size || 1;
-            document.getElementById('editPosX').value = config.x || 0;
-            document.getElementById('editPosY').value = config.y || 0;
-            document.getElementById('editSpace').value = config.mb || 0;
-            document.getElementById('editW').value = config.w || 0;
-            document.getElementById('editH').value = config.h || 0;
-
-            applyHighlight(); 
-
-            const coverPage = document.getElementById('coverPage');
-            const mainContent = document.getElementById('mainContent');
-            let targetSectionId = null; let showCover = false;
-
-            if (target.startsWith('cover-')) showCover = true;
-            else if (target.startsWith('profile-') || target === 'profil-card') targetSectionId = 'sectionProfil';
-            else if (target.startsWith('event-') || target.startsWith('akad-') || target === 'akad-card') targetSectionId = 'sectionAkad'; 
-            else if (target.startsWith('resepsi-') || target === 'resepsi-card') targetSectionId = 'sectionResepsi'; 
-            else if (target.startsWith('closing-') || target === 'penutup-card') targetSectionId = 'sectionPenutup';
-            else if (target.startsWith('turut-') || target === 'turut-card') targetSectionId = 'sectionTurutMengundang';
-
-            if (showCover) {
-                coverPage.classList.remove('hide-cover');
-                mainContent.classList.add('hidden');
-                mainContent.classList.remove('fade-in');
-            } else if (targetSectionId) {
-                if (!coverPage.classList.contains('hide-cover')) openInvitation();
-                setTimeout(() => {
-                    const section = document.getElementById(targetSectionId);
-                    if (section) mainContent.scrollTo({ left: section.offsetLeft, behavior: 'smooth' });
-                }, 100); 
-            }
-        }
-
-      // Peta penghubung antara ID teks di preview dengan ID input di form
-        const mapIdToInput = {
-            'prevTeksPembuka': 'editPembuka', 'prevTeksPengantar': 'editPengantar',
-            'prevTglAkad': 'editTglAkad', 'prevJamAkad': 'editJamAkad',
-            'prevTempatAkad': 'editTempatAkad', 'prevAlamatAkad': 'editAlamatAkad',
-            'prevHariResepsi': 'editHariResepsi', 'prevTanggalResepsi': 'editTanggalResepsi',
-            'prevBulanResepsi': 'editBulanResepsi', 'prevTahunResepsi': 'editTahunResepsi',
-            'prevJamResepsi': 'editJamResepsi', 'prevTempatResepsi': 'editTempatResepsi',
-            'prevAlamatResepsi': 'editAlamatResepsi', 'prevKetResepsi': 'editKetResepsi',
-            'prevTeksPenutup': 'editPenutup', 'prevTurutMengundang': 'editTurut'
-        };
-
-      
-        function updatePreviewStyles() {
-            const target = document.getElementById('editTargetSelect').value;
-            const font = document.getElementById('editFontFamily').value;
-            const size = parseFloat(document.getElementById('editFontSize').value);
-            const x = parseInt(document.getElementById('editPosX').value);
-            const y = parseInt(document.getElementById('editPosY').value);
-            const mb = parseInt(document.getElementById('editSpace').value);
-            const w = parseInt(document.getElementById('editW').value);
-            const h = parseInt(document.getElementById('editH').value);
-            
-            const customText = designConfigMap[target] ? designConfigMap[target].customText : null;
-            designConfigMap[target] = { font, size, x, y, mb, w, h, customText };
-            
-            localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
-            applyAllDesignConfig();
-            
-            // Catat perubahan via slider ke memori (Sistem Undo)
-            if (typeof saveHistory === 'function') {
-                clearTimeout(window.sliderDebounce);
-                window.sliderDebounce = setTimeout(() => saveHistory(), 300);
-            }
-        }
-  
-       function applyAllDesignConfig() {
+        function applyAllDesignConfig(designMap) {
             const preview = document.getElementById('preview-window');
-            for (let target in designConfigMap) {
-                const config = designConfigMap[target];
-                
-                // Pastikan nilai variabel tak terdefinisi otomatis menjadi 0
+            for (let target in designMap) {
+                const config = designMap[target];
                 if(config.w === undefined) config.w = 0;
                 if(config.h === undefined) config.h = 0;
 
@@ -1264,536 +504,94 @@
                 preview.style.setProperty(`--mb-${target}`, (config.mb || 0) + 'px');
 
                 document.querySelectorAll(`.target-${target}`).forEach(el => {
-                    // Cek Status Terhapus
                     if (config.deleted) {
                         el.style.setProperty('display', 'none', 'important');
-                        return; // Hentikan proses styling lain jika elemen disembunyikan
+                        return;
                     } else {
                         el.style.removeProperty('display');
                     }
 
-                    // 1. TERAPKAN PERUBAHAN LEBAR (W) SECARA PAKSA (OVERRIDE GRID)
                     if (config.w) {
                         el.style.setProperty('width', `calc(100% + ${config.w}px)`, 'important');
                         el.style.setProperty('max-width', 'none', 'important');
-                        
-                        // Khusus untuk elemen dalam GRID (Tanggal/Waktu Akad & Resepsi)
                         if (['akad-tanggal', 'akad-waktu', 'resepsi-tanggal', 'resepsi-waktu'].includes(target)) {
                            const parentBox = el.closest('.px-1'); 
-                           if (parentBox) {
-                               parentBox.style.setProperty('width', `calc(100% + ${config.w}px)`);
-                               parentBox.style.setProperty('max-width', 'none');
-                           }
+                           if (parentBox) { parentBox.style.setProperty('width', `calc(100% + ${config.w}px)`); parentBox.style.setProperty('max-width', 'none'); }
                         }
                     } else {
-                        el.style.removeProperty('width');
-                        el.style.removeProperty('max-width');
+                        el.style.removeProperty('width'); el.style.removeProperty('max-width');
                          if (['akad-tanggal', 'akad-waktu', 'resepsi-tanggal', 'resepsi-waktu'].includes(target)) {
                            const parentBox = el.closest('.px-1');
-                           if (parentBox) {
-                               parentBox.style.removeProperty('width');
-                               parentBox.style.removeProperty('max-width');
-                           }
+                           if (parentBox) { parentBox.style.removeProperty('width'); parentBox.style.removeProperty('max-width'); }
                         }
                     }
 
-                    // 2. TERAPKAN PERUBAHAN TINGGI (H) 
                     if (config.h) {
                         if (el.classList.contains('glass-card') || el.classList.contains('target-akad-box') || el.classList.contains('target-resepsi-box')) {
-                            el.style.paddingTop = `calc(1.5rem + ${config.h / 2}px)`;
-                            el.style.paddingBottom = `calc(1.5rem + ${config.h / 2}px)`;
+                            el.style.paddingTop = `calc(1.5rem + ${config.h / 2}px)`; el.style.paddingBottom = `calc(1.5rem + ${config.h / 2}px)`;
                         } else if (el.classList.contains('target-akad-divider') || el.classList.contains('target-resepsi-divider')) {
                             el.style.height = `calc(100% - 2rem + ${config.h}px)`;
                         } else {
-                            el.style.paddingTop = `calc(${config.h / 2}px)`;
-                            el.style.paddingBottom = `calc(${config.h / 2}px)`;
+                            el.style.paddingTop = `calc(${config.h / 2}px)`; el.style.paddingBottom = `calc(${config.h / 2}px)`;
                         }
                     } else {
-                        el.style.paddingTop = '';
-                        el.style.paddingBottom = '';
+                        el.style.paddingTop = ''; el.style.paddingBottom = '';
                         if (el.classList.contains('target-akad-divider') || el.classList.contains('target-resepsi-divider')) el.style.height = ''; 
                     }
 
-                    // 3. JAGA TEXT CUSTOM (Double Click Inline Edit)
-                    if (config.customText && typeof mapIdToInput !== 'undefined') {
-                        if (!el.id || (!mapIdToInput[el.id] && el.id !== 'coverNames' && el.id !== 'prevHormat')) { 
+                    if (config.customText) {
+                        if (el.id !== 'coverNames' && el.id !== 'prevHormat') { 
                              el.innerText = config.customText;
                         }
                     }
                 });
             }
         }
-        
-        function loadPreviewStyles() {
-            changeEditTarget();
-            applyAllDesignConfig(); 
+
+        function refreshObserver() {
+            if (observer) observer.disconnect();
+            observer = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); else e.target.classList.remove('active'); });
+            }, { root: document.getElementById('mainContent'), threshold: 0.1 });
+            document.querySelectorAll('#preview-window .reveal-item, #preview-window .word-reveal-container').forEach(el => observer.observe(el));
         }
 
-        // ==========================================
-        // ALIGNMENT FUNCTION (GROUP-AWARE & SCREEN-AWARE)
-        // ==========================================
-        function alignSelected(direction) {
-            if (selectedTargets.length < 1) return;
+        async function muatData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            let data = null;
 
-            // 1. Kumpulkan elemen DOM
-            const elementsData = selectedTargets.map(t => ({
-                name: t,
-                el: document.querySelector(`.target-${t}`),
-                rect: null
-            })).filter(item => item.el);
-
-            if (elementsData.length < 1) return;
-            
-            // Setel bounding rect awal dan koordinat
-            elementsData.forEach(item => {
-                item.rect = item.el.getBoundingClientRect();
-                item.currentX = designConfigMap[item.name].x || 0;
-                item.currentY = designConfigMap[item.name].y || 0;
-            });
-
-            // 2. Tentukan entitas apa saja yang akan diratakan (Bisa Grup, atau Single)
-            const entities = [];
-            const processedTargets = new Set();
-
-            elementsData.forEach(item => {
-                if (processedTargets.has(item.name)) return;
-
-                const parentGroup = componentGroups.find(g => g.includes(item.name) && g.every(t => selectedTargets.includes(t)));
-
-                if (parentGroup) {
-                    const groupElements = elementsData.filter(e => parentGroup.includes(e.name));
-                    groupElements.forEach(ge => processedTargets.add(ge.name));
-                    
-                    entities.push({
-                        isGroup: true,
-                        items: groupElements,
-                        rect: {
-                            top: Math.min(...groupElements.map(ge => ge.rect.top)),
-                            bottom: Math.max(...groupElements.map(ge => ge.rect.bottom)),
-                            left: Math.min(...groupElements.map(ge => ge.rect.left)),
-                            right: Math.max(...groupElements.map(ge => ge.rect.right))
-                        }
-                    });
+            try {
+                if (id) {
+                    const res = await supabaseClient.from('data_undangan').select('*').eq('url_undangan', id).single();
+                    if(res.data) data = res.data;
                 } else {
-                    processedTargets.add(item.name);
-                    entities.push({
-                        isGroup: false,
-                        items: [item],
-                        rect: {
-                            top: item.rect.top, bottom: item.rect.bottom,
-                            left: item.rect.left, right: item.rect.right
-                        }
-                    });
-                }
-            });
-
-            entities.forEach(ent => {
-                ent.rect.width = ent.rect.right - ent.rect.left;
-                ent.rect.height = ent.rect.bottom - ent.rect.top;
-            });
-
-            if (entities.length < 1) return;
-
-            // 3. Tentukan Target Koordinat (Patokan dari Layar atau Antar Komponen)
-            let targetPos;
-            const isVertical = ['top', 'bottom', 'middle'].includes(direction);
-
-            // Jika yang dipilih HANYA 1 ENTITAS (Entah itu 1 komponen tunggal, atau 1 Grup utuh), 
-            // jadikan ukuran LAYAR PREVIEW sebagai batas rata tengah/pinggirnya.
-            if (entities.length === 1) {
-                const previewRect = document.getElementById('preview-window').getBoundingClientRect();
-                
-                if (direction === 'left') targetPos = previewRect.left;
-                else if (direction === 'right') targetPos = previewRect.right;
-                else if (direction === 'center') targetPos = previewRect.left + (previewRect.width / 2);
-                else if (direction === 'top') targetPos = previewRect.top;
-                else if (direction === 'bottom') targetPos = previewRect.bottom;
-                else if (direction === 'middle') targetPos = previewRect.top + (previewRect.height / 2);
-            } 
-            // LOGIKA BARU: Jika LEBIH DARI 1 Entitas dipilih (Kombinasi Grup & Non-Grup), 
-            // sejajarkan mereka berdasarkan titik imajiner kotak batas keseluruhan (Selection Bounding Box).
-            else {
-                const minLeft = Math.min(...entities.map(e => e.rect.left));
-                const maxRight = Math.max(...entities.map(e => e.rect.right));
-                const minTop = Math.min(...entities.map(e => e.rect.top));
-                const maxBottom = Math.max(...entities.map(e => e.rect.bottom));
-
-                if (direction === 'left') targetPos = minLeft;
-                else if (direction === 'right') targetPos = maxRight;
-                else if (direction === 'center') targetPos = minLeft + ((maxRight - minLeft) / 2); // Titik Tengah Akurat
-                else if (direction === 'top') targetPos = minTop;
-                else if (direction === 'bottom') targetPos = maxBottom;
-                else if (direction === 'middle') targetPos = minTop + ((maxBottom - minTop) / 2); // Titik Vertikal Akurat
-            }
-
-            // 4. Hitung dan terapkan pergeseran (Delta) pada tiap entitas
-            entities.forEach(ent => {
-                let delta = 0;
-                
-                if (!isVertical) {
-                    if (direction === 'left') delta = targetPos - ent.rect.left;
-                    else if (direction === 'right') delta = targetPos - ent.rect.right;
-                    else if (direction === 'center') delta = targetPos - (ent.rect.left + (ent.rect.width / 2));
-                } else {
-                    if (direction === 'top') delta = targetPos - ent.rect.top;
-                    else if (direction === 'bottom') delta = targetPos - ent.rect.bottom;
-                    else if (direction === 'middle') delta = targetPos - (ent.rect.top + (ent.rect.height / 2));
+                    const res = await supabaseClient.from('data_undangan').select('*').order('updated_at', {ascending: false}).limit(1);
+                    if(res.data && res.data.length > 0) data = res.data[0];
                 }
 
-                ent.items.forEach(item => {
-                    if (!isVertical) {
-                        designConfigMap[item.name].x = Math.round(item.currentX + delta);
-                    } else {
-                        designConfigMap[item.name].y = Math.round(item.currentY + delta);
+                if (data) {
+                    let activeDesignConfig = { ...defaultDesignConfig };
+                    if (data.design_config) {
+                        activeDesignConfig = { ...defaultDesignConfig, ...data.design_config };
+                        for(let key in defaultDesignConfig) { if(activeDesignConfig[key].x === undefined) activeDesignConfig[key].x = 0; }
                     }
-                });
-            });
 
-            // Update Input Panel
-            const dropdownTarget = document.getElementById('editTargetSelect').value;
-            if (selectedTargets.includes(dropdownTarget)) {
-                if (!isVertical) document.getElementById('editPosX').value = designConfigMap[dropdownTarget].x;
-                else document.getElementById('editPosY').value = designConfigMap[dropdownTarget].y;
-            }
-
-            localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
-            applyAllDesignConfig();
-            
-            // Integrasi ke Sistem Undo
-            if (typeof saveHistory === 'function') saveHistory();
-        }
-
-        // ==========================================
-        let isDragging = false;
-        let startX = 0, startY = 0;
-        let initialPositions = {};
-        let activeDragTarget = null;
-        
-        const previewWindow = document.getElementById('preview-window');
-        const centerGuide = document.getElementById('center-guide');
-
-      function startDrag(e) {
-            // Mencegah drag jika sedang mode tamu (ada ID di URL)
-            if (new URLSearchParams(window.location.search).get('id')) return;
-
-            // Mencegah drag jika sedang mengetik/mengedit teks (isContentEditable)
-            if (e.target.closest('button') || e.target.closest('svg') || e.target.closest('[contenteditable="true"]')) return;
-            const targetEl = e.target.closest('[data-target]');
-            if (!targetEl) return;
-            
-            const targetName = targetEl.getAttribute('data-target');
-            
-            // Cek apakah elemen terkait tergabung dalam Group
-            const group = componentGroups.find(g => g.includes(targetName));
-            const targetsToSelect = group ? group : [targetName];
-
-            // Logika Seleksi Multiple / Group 
-            if (e.ctrlKey || e.metaKey) {
-                const isAllSelected = targetsToSelect.every(t => selectedTargets.includes(t));
-                if (isAllSelected) {
-                    selectedTargets = selectedTargets.filter(t => !targetsToSelect.includes(t));
+                    renderData(data);
+                    applyAllDesignConfig(activeDesignConfig);
+                    refreshObserver();
                 } else {
-                    targetsToSelect.forEach(t => { if (!selectedTargets.includes(t)) selectedTargets.push(t); });
+                    document.getElementById('loadingText').innerText = "Undangan tidak ditemukan.";
+                    return;
                 }
-            } else {
-                const isAllSelected = targetsToSelect.every(t => selectedTargets.includes(t));
-                // Tetap biarkan selected jika user mendrag banyak item, jika tidak, reset sesuai grup target.
-                if (!isAllSelected || selectedTargets.length !== targetsToSelect.length) {
-                    selectedTargets = [...targetsToSelect];
-                }
-            }
-
-            if (selectedTargets.length > 0) {
-                document.getElementById('editTargetSelect').value = selectedTargets[selectedTargets.length - 1];
-                const activeConfig = designConfigMap[selectedTargets[selectedTargets.length - 1]];
-                document.getElementById('editFontFamily').value = activeConfig.font;
-                document.getElementById('editFontSize').value = activeConfig.size;
-                document.getElementById('editPosX').value = activeConfig.x || 0;
-                document.getElementById('editPosY').value = activeConfig.y || 0;
-                document.getElementById('editSpace').value = activeConfig.mb || 0;
-            }
-
-            applyHighlight();
-
-            if (selectedTargets.length === 0) return;
-
-            isDragging = true;
-            activeDragTarget = targetName;
-            
-            initialPositions = {};
-            selectedTargets.forEach(t => {
-                initialPositions[t] = {
-                    x: designConfigMap[t].x || 0,
-                    y: designConfigMap[t].y || 0
-                };
-            });
-            
-            startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-            startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-
-            centerGuide.classList.remove('hidden');
-        }
-
-        function drag(e) {
-            if (!isDragging || selectedTargets.length === 0) return;
-            if(e.cancelable) e.preventDefault(); 
-            
-            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-            const currentY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-            
-            const deltaX = currentX - startX;
-            const deltaY = currentY - startY;
-
-            let moveX = Math.round(deltaX / 1.5); 
-            let moveY = Math.round(deltaY / 1.5); 
-            
-            let primaryNewX = initialPositions[activeDragTarget].x + moveX;
-            if (Math.abs(primaryNewX) < 10) {
-                moveX = -initialPositions[activeDragTarget].x;
-                centerGuide.classList.add('bg-brand-goldMain', 'shadow-[0_0_10px_#D4AF37]');
-                centerGuide.classList.remove('bg-gray-400/50', 'shadow-none');
-            } else {
-                centerGuide.classList.add('bg-gray-400/50', 'shadow-none');
-                centerGuide.classList.remove('bg-brand-goldMain', 'shadow-[0_0_10px_#D4AF37]');
-            }
-
-            selectedTargets.forEach(t => {
-                let nX = initialPositions[t].x + moveX;
-                let nY = initialPositions[t].y + moveY;
-                if (nX < -250) nX = -250; if (nX > 250) nX = 250;
-                if (nY < -250) nY = -250; if (nY > 250) nY = 250;
-                
-                designConfigMap[t].x = nX;
-                designConfigMap[t].y = nY;
-            });
-
-            const dropdownTarget = document.getElementById('editTargetSelect').value;
-            if (selectedTargets.includes(dropdownTarget)) {
-                document.getElementById('editPosX').value = designConfigMap[dropdownTarget].x;
-                document.getElementById('editPosY').value = designConfigMap[dropdownTarget].y;
-            }
-            
-            applyAllDesignConfig();
-        }
-
-        function stopDrag(e) {
-            if (!isDragging) return;
-            isDragging = false;
-            centerGuide.classList.add('hidden');
-            localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
-        }
-
-        // ==========================================
-        // KEYBOARD NUDGE MULTI-SELECT (SHIFT + ARROW)
-        // ==========================================
-       // ==========================================
-        // KEYBOARD NUDGE MULTI-SELECT & DELETE
-        // ==========================================
-        window.addEventListener('keydown', (e) => {
-            // Cegah aktif jika sedang mengetik di input atau mengedit teks secara inline
-            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) || document.activeElement.isContentEditable) return;
-
-            // Fitur Hapus Komponen (Tombol Delete atau Backspace)
-            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedTargets.length > 0) {
-                e.preventDefault();
-                deleteSelected();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loadingText').innerText = "Terjadi kesalahan sistem.";
                 return;
             }
 
-            if (e.shiftKey && selectedTargets.length > 0) {
-                let nudged = false;
-                const step = 1;
-
-                let deltaX = 0; let deltaY = 0;
-                switch(e.key) {
-                    case 'ArrowUp': deltaY = -step; nudged = true; break;
-                    case 'ArrowDown': deltaY = step; nudged = true; break;
-                    case 'ArrowLeft': deltaX = -step; nudged = true; break;
-                    case 'ArrowRight': deltaX = step; nudged = true; break;
-                }
-
-                if (nudged) {
-                    e.preventDefault(); 
-                    selectedTargets.forEach(t => {
-                        let nX = (designConfigMap[t].x || 0) + deltaX;
-                        let nY = (designConfigMap[t].y || 0) + deltaY;
-                        
-                        if (nX < -250) nX = -250; if (nX > 250) nX = 250;
-                        if (nY < -250) nY = -250; if (nY > 250) nY = 250;
-                        
-                        designConfigMap[t].x = nX;
-                        designConfigMap[t].y = nY;
-                    });
-                    
-                    const dropdownTarget = document.getElementById('editTargetSelect').value;
-                    if (selectedTargets.includes(dropdownTarget)) {
-                        document.getElementById('editPosX').value = designConfigMap[dropdownTarget].x;
-                        document.getElementById('editPosY').value = designConfigMap[dropdownTarget].y;
-                    }
-                    
-                    localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
-                    applyAllDesignConfig();
-                }
-            }
-        });
-
-
-        previewWindow.addEventListener('mousedown', startDrag);
-        window.addEventListener('mousemove', drag, { passive: false });
-        window.addEventListener('mouseup', stopDrag);
-
-        previewWindow.addEventListener('touchstart', startDrag, { passive: false });
-        window.addEventListener('touchmove', drag, { passive: false });
-        window.addEventListener('touchend', stopDrag);
-
-
-        // ==========================================
-        // FUNGSI SIMPAN KE SUPABASE
-        // ==========================================
-        async function simpanPerubahan() {
-            if (!currentWeddingId) { alert('Tidak ada ID Undangan aktif.'); return; }
-            const btn = document.getElementById('btnSimpan');
-            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
-
-            const tglResepsiData = {
-                hari: document.getElementById('editHariResepsi').value,
-                tanggal: document.getElementById('editTanggalResepsi').value,
-                bulan: document.getElementById('editBulanResepsi').value,
-                tahun: document.getElementById('editTahunResepsi').value
-            };
-
-            const payload = {
-                jenisUndangan: document.getElementById('editJenisUndangan').value,
-                susunan: document.getElementById('editSusunan').value,
-                wPanggilan: document.getElementById('editWpanggilan').value,
-                wNama: document.getElementById('editWnama').value,
-                wAnak: document.getElementById('editWanak').value,
-                wBapak: document.getElementById('editWbapak').value,
-                wIbu: document.getElementById('editWibu').value,
-                pPanggilan: document.getElementById('editPpanggilan').value,
-                pNama: document.getElementById('editPnama').value,
-                pAnak: document.getElementById('editPanak').value,
-                pBapak: document.getElementById('editPbapak').value,
-                pIbu: document.getElementById('editPibu').value,
-                tanggalAkad: document.getElementById('editTglAkad').value,
-                jamAkad: document.getElementById('editJamAkad').value,
-                tempatAkad: document.getElementById('editTempatAkad').value,
-                alamatAkad: document.getElementById('editAlamatAkad').value,
-                tanggalResepsi: JSON.stringify(tglResepsiData),
-                jamResepsi: document.getElementById('editJamResepsi').value,
-                tempatResepsi: document.getElementById('editTempatResepsi').value,
-                alamatResepsi: document.getElementById('editAlamatResepsi').value,
-                keteranganResepsi: document.getElementById('editKetResepsi').value,
-                hormat: document.getElementById('editHormat').value,
-                turutMengundang: document.getElementById('editTurut').value,
-                teksPembuka: document.getElementById('editPembuka').value,
-                teksPengantarAcara: document.getElementById('editPengantar').value,
-                teksPenutup: document.getElementById('editPenutup').value,
-                design_config: designConfigMap, 
-                updated_at: new Date().toISOString()
-            };
-
-            try {
-                const { error } = await supabaseClient.from('data_undangan').update(payload).eq('id', currentWeddingId);
-                if (error) throw error;
-                btn.innerHTML = 'Berhasil!';
-                btn.classList.replace('bg-green-600', 'bg-blue-600');
-            } catch (error) {
-                console.error(error);
-                btn.innerHTML = 'Gagal!';
-                btn.classList.replace('bg-green-600', 'bg-red-600');
-            } finally {
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Simpan`;
-                    btn.className = "bg-green-600 hover:bg-green-500 text-white px-5 py-2 rounded-lg font-medium shadow-lg transition-colors text-sm flex items-center gap-2";
-                }, 2000);
-            }
-        }
-
-        // ==========================================
-        // FITUR INLINE TEXT EDITING (DOUBLE CLICK)
-        // ==========================================
-        let currentEditingElement = null;
-
-      previewWindow.addEventListener('dblclick', function(e) {
-            // Mencegah edit teks jika sedang mode tamu (ada ID di URL)
-            if (new URLSearchParams(window.location.search).get('id')) return;
-
-            const targetEl = e.target.closest('[data-target]');
-            if (!targetEl) return;
-
-            e.stopPropagation(); // Cegah fungsi lain
-            
-            // Jadikan teks bisa diedit seperti Notepad
-            targetEl.setAttribute('contenteditable', 'true');
-            targetEl.focus();
-            
-            // Tambahkan visual background gelap & garis pinggir saat diedit
-            targetEl.classList.add('cursor-text', 'bg-black/60', 'backdrop-blur-sm', 'outline', 'outline-2', 'outline-dashed', 'outline-brand-goldMain', 'rounded', 'px-2', 'py-1', 'z-[100]');
-            
-            // Blok semua teks otomatis agar mudah ditimpa
-            document.execCommand('selectAll', false, null);
-            currentEditingElement = targetEl;
-        });
-
-        // Simpan ketika user klik keluar (blur) atau tekan Enter
-        previewWindow.addEventListener('focusout', handleInlineEditSave);
-        previewWindow.addEventListener('keydown', function(e) {
-            if (currentEditingElement && e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                currentEditingElement.blur(); // Memicu proses simpan (focusout)
-            }
-        });
-
-        function handleInlineEditSave(e) {
-            if (!currentEditingElement) return;
-            
-            const targetEl = currentEditingElement;
-            targetEl.removeAttribute('contenteditable');
-            targetEl.classList.remove('cursor-text', 'bg-black/60', 'backdrop-blur-sm', 'outline', 'outline-2', 'outline-dashed', 'outline-brand-goldMain', 'rounded', 'px-2', 'py-1', 'z-[100]');
-            currentEditingElement = null;
-
-            const targetName = targetEl.getAttribute('data-target');
-            let newText = targetEl.innerText.trim();
-
-            // Pengecualian khusus untuk komponen Nama Kompleks yang ada di halaman profil
-            if (targetName === 'profile-names' || targetName === 'profile-parents') {
-                alert("Pro Tips: Silakan gunakan form di sebelah kanan untuk mengubah ejaan spesifik nama mempelai dan orang tua pada halaman profil ini.");
-                updatePreview(); return;
-            }
-
-            // Skenario 1: Jika mengedit nama gabungan dengan simbol "&" (Halaman Cover & Penutup)
-            if (targetEl.id === 'coverNames' || targetEl.id === 'prevHormat') {
-                const names = newText.split('&').map(n => n.trim());
-                if (names.length === 2) {
-                    const susunan = document.getElementById('editSusunan').value;
-                    if (susunan === 'pria') {
-                        document.getElementById('editPpanggilan').value = names[0];
-                        document.getElementById('editWpanggilan').value = names[1];
-                    } else {
-                        document.getElementById('editWpanggilan').value = names[0];
-                        document.getElementById('editPpanggilan').value = names[1];
-                    }
-                }
-                updatePreview(); // Render ulang agar format rapi
-            } 
-            // Skenario 2: Jika terhubung dengan Input di Form (Update value form otomatis)
-            else if (targetEl.id && mapIdToInput[targetEl.id]) {
-                const inputId = mapIdToInput[targetEl.id];
-                document.getElementById(inputId).value = newText;
-                updatePreview(); // Render ulang
-            } 
-            // Skenario 3: Jika itu Label Judul / Teks Statis tanpa Form
-            else {
-                if (designConfigMap[targetName]) {
-                    designConfigMap[targetName].customText = newText;
-                }
-            }
-
-            localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
-            applyAllDesignConfig();
-            if (typeof saveHistory === 'function') saveHistory();
+            document.getElementById('loadingScreen').classList.add('fade-out');
+            setTimeout(() => { document.getElementById('loadingScreen').style.display='none'; }, 800);
         }
 
         window.onload = function() {
