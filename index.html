@@ -205,8 +205,7 @@
             <span class="font-serif font-bold text-lg tracking-wide">Live Preview</span>
         </div>
 
-        <div class="relative bg-brand-bg rounded-[2.5rem] border-[6px] md:border-[8px] border-gray-800 shadow-2xl overflow-hidden mt-6 lg:mt-0" style="width: 360px; height: 100%; max-height: 760px; aspect-ratio: 9/19;">
-            
+    <div id="mockupContainer" class="relative bg-brand-bg rounded-[2.5rem] border-[6px] md:border-[8px] border-gray-800 shadow-2xl overflow-hidden mt-6 lg:mt-0" style="width: 360px; height: 100%; max-height: 760px; aspect-ratio: 9/19;">       
             <!-- ALIGNMENT & GROUP TOOLBAR (Muncul saat multi-select) -->
             <div id="alignToolbar" class="hidden absolute top-4 left-1/2 transform -translate-x-1/2 bg-[#1a1a1e]/90 backdrop-blur border border-brand-goldMain/30 p-2 rounded-xl shadow-2xl z-[300] gap-1 items-center">
                 <span class="text-[10px] uppercase text-gray-400 font-bold px-2 border-r border-gray-600">Align</span>
@@ -928,27 +927,49 @@
                 </div>`;
         }
 
-      async function muatData() {
+     async function muatData() {
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         let data = null;
 
         // --- TAMBAHAN KODE: MODE TAMU / VIEW ONLY ---
         if (id) {
-            // Sembunyikan panel editor kanan
+            // 1. Sembunyikan panel editor kanan
             const editorPanel = document.getElementById('editorPanel');
             if (editorPanel) editorPanel.style.display = 'none';
             
-            // Buat panel kiri menjadi full screen
+            // 2. Buat panel kiri (preview) menjadi full screen
             const previewPanel = document.getElementById('previewPanel');
             if (previewPanel) {
-                previewPanel.classList.remove('lg:w-1/2', 'lg:border-r', 'border-b', 'border-editor-border');
-                previewPanel.classList.add('w-full');
+                previewPanel.classList.remove('lg:w-1/2', 'lg:border-r', 'border-b', 'border-editor-border', 'p-4');
+                previewPanel.classList.add('w-full', 'p-0'); // Hilangkan padding
             }
             
-            // Sembunyikan label "Live Preview"
+            // 3. Sembunyikan label "Live Preview"
             const previewLabel = document.getElementById('previewLabel');
             if (previewLabel) previewLabel.style.display = 'none';
+
+            // 4. HILANGKAN KOTAK MOCKUP HP & BUAT FULL SCREEN
+            const mockupContainer = document.getElementById('mockupContainer');
+            if (mockupContainer) {
+                // Hapus style bawaan (ukuran statis, border, radius)
+                mockupContainer.removeAttribute('style');
+                mockupContainer.className = "relative bg-brand-bg w-full h-full overflow-hidden";
+            }
+
+            // 5. SEMBUNYIKAN MENU ALIGN SECARA PAKSA
+            const alignToolbar = document.getElementById('alignToolbar');
+            if (alignToolbar) alignToolbar.style.display = 'none';
+
+            // 6. MATIKAN EFEK HOVER (KOTAK PUTUS-PUTUS) & POINTER EVENTS PADA ELEMEN TARGET
+            // Tambahkan tag <style> khusus sementara untuk override CSS
+            const style = document.createElement('style');
+            style.innerHTML = `
+                [data-target] { cursor: default !important; pointer-events: none !important; }
+                [data-target]:hover { outline: none !important; }
+                .is-editing { outline: none !important; background: transparent !important; }
+            `;
+            document.head.appendChild(style);
         }
         // -------------------------------------------
 
@@ -1017,7 +1038,7 @@
         document.getElementById('loadingScreen').classList.add('fade-out');
         setTimeout(() => { document.getElementById('loadingScreen').style.display='none'; }, 800);
     }
-    
+
         function updatePreview() {
             const getV = (id) => document.getElementById(id).value.trim();
             const jenis = getV('editJenisUndangan');
