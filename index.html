@@ -116,6 +116,16 @@
 
         .target-closing-salam { font-family: var(--f-closing-salam, 'Playfair Display') !important; font-size: calc(18px * var(--s-closing-salam, 1)) !important; top: var(--y-closing-salam, 0px); position: relative; transition: all 0.2s; }
         .target-closing-names { font-family: var(--f-closing-names, 'Great Vibes') !important; font-size: calc(24px * var(--s-closing-names, 1)) !important; top: var(--y-closing-names, 0px); position: relative; transition: all 0.2s; }
+        
+        /* Tambahan Custom Variable untuk Seluruh Baris Teks */
+        .target-cover-yth { font-family: var(--f-cover-yth, 'Lato') !important; font-size: calc(12px * var(--s-cover-yth, 1)) !important; top: var(--y-cover-yth, 0px); position: relative; transition: all 0.2s; }
+        .target-profile-pembuka { font-family: var(--f-profile-pembuka, 'Lato') !important; font-size: calc(12px * var(--s-profile-pembuka, 1)) !important; top: var(--y-profile-pembuka, 0px); position: relative; transition: all 0.2s; line-height: 1.6; }
+        .target-event-pengantar { font-family: var(--f-event-pengantar, 'Lato') !important; font-size: calc(11px * var(--s-event-pengantar, 1)) !important; top: var(--y-event-pengantar, 0px); position: relative; transition: all 0.2s; line-height: 1.6; }
+        .target-event-alamat { font-family: var(--f-event-alamat, 'Lato') !important; font-size: calc(11px * var(--s-event-alamat, 1)) !important; top: var(--y-event-alamat, 0px); position: relative; transition: all 0.2s; }
+        .target-event-ket { font-family: var(--f-event-ket, 'Lato') !important; font-size: calc(10px * var(--s-event-ket, 1)) !important; top: var(--y-event-ket, 0px); position: relative; transition: all 0.2s; }
+        .target-closing-teks { font-family: var(--f-closing-teks, 'Lato') !important; font-size: calc(11px * var(--s-closing-teks, 1)) !important; top: var(--y-closing-teks, 0px); position: relative; transition: all 0.2s; line-height: 1.6; }
+        .target-turut-title { font-family: var(--f-turut-title, 'Playfair Display') !important; font-size: calc(20px * var(--s-turut-title, 1)) !important; top: var(--y-turut-title, 0px); position: relative; transition: all 0.2s; }
+        .target-turut-list { font-family: var(--f-turut-list, 'Lato') !important; font-size: calc(11px * var(--s-turut-list, 1)) !important; top: var(--y-turut-list, 0px); position: relative; transition: all 0.2s; }
     </style>
 </head>
 <body class="flex flex-col lg:flex-row h-screen w-full">
@@ -156,7 +166,7 @@
                         <div class="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-brand-goldMain rounded-br-3xl opacity-50 m-3"></div>
                         <p class="target-cover-title font-sans text-brand-goldLight tracking-[3px] uppercase mb-3">The Wedding Of</p>
                         <h1 id="coverNames" class="target-cover-names text-brand-goldMain mb-5 drop-shadow-md flex flex-wrap justify-center gap-x-2">... & ...</h1>
-                        <p class="font-sans text-xs text-gray-300 mb-6">Kepada Yth.<br><span class="font-bold text-white mt-1 block">Tamu Undangan</span></p>
+                        <p class="target-cover-yth font-sans text-xs text-gray-300 mb-6">Kepada Yth.<br><span class="font-bold text-white mt-1 block">Tamu Undangan</span></p>
                         <button onclick="openInvitation()" class="bg-gradient-to-r from-brand-goldLight to-brand-goldMain text-brand-bg font-bold py-2.5 px-6 rounded-full uppercase tracking-wider text-xs transition-all hover:shadow-[0_0_20px_rgba(212,175,55,0.6)]" style="animation: pulse-glow 2s infinite;">Buka Undangan</button>
                     </div>
                 </div>
@@ -168,7 +178,7 @@
                     <section id="sectionProfil" class="snap-start shrink-0 w-full h-full overflow-y-auto overflow-x-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div class="glass-card rounded-2xl p-6 shadow-xl w-full text-center">
-                                <div id="prevTeksPembuka" class="font-sans text-xs text-gray-300 leading-relaxed italic mb-8"></div>
+                                <div id="prevTeksPembuka" class="target-profile-pembuka font-sans text-xs text-gray-300 leading-relaxed italic mb-8"></div>
                                 <div id="prevCoupleContainer" class="flex flex-col gap-8"></div>
                             </div>
                             <div class="mt-6 flex items-center justify-center gap-2 swipe-indicator text-brand-goldMain opacity-90 reveal-item" style="transition-delay: 500ms">
@@ -182,7 +192,7 @@
                     <section id="sectionAkad" class="snap-start shrink-0 w-full h-full overflow-y-auto overflow-x-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <h2 class="target-event-title font-serif text-brand-goldMain mb-3 text-center reveal-item">Detail Acara</h2>
-                            <div id="prevTeksPengantar" class="font-sans text-[11px] text-gray-300 mb-6 text-center"></div>
+                            <div id="prevTeksPengantar" class="target-event-pengantar font-sans text-[11px] text-gray-300 mb-6 text-center"></div>
                             <div class="w-full mb-3">
                                 <div id="cardAkad" class="glass-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item">
                                     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-brand-goldMain to-transparent"></div>
@@ -195,7 +205,7 @@
                                     </div>
                                     <p class="font-sans text-[9px] uppercase tracking-[1px] text-brand-goldLight/80 mb-1">Tempat</p>
                                     <p id="prevTempatAkad" class="target-event-text font-serif text-brand-goldMain mb-1">...</p>
-                                    <p id="prevAlamatAkad" class="font-sans text-[11px] text-gray-300">...</p>
+                                    <p id="prevAlamatAkad" class="target-event-alamat font-sans text-[11px] text-gray-300">...</p>
                                 </div>
                             </div>
                             <div id="swipeAkad" class="mt-4 flex items-center gap-2 swipe-indicator text-brand-goldMain opacity-90 reveal-item">
@@ -220,9 +230,9 @@
                                     </div>
                                     <p class="font-sans text-[9px] uppercase tracking-[1px] text-brand-goldLight/80 mb-1">Tempat</p>
                                     <p id="prevTempatResepsi" class="target-event-text font-serif text-brand-goldMain mb-1">...</p>
-                                    <p id="prevAlamatResepsi" class="font-sans text-[11px] text-gray-300">...</p>
+                                    <p id="prevAlamatResepsi" class="target-event-alamat font-sans text-[11px] text-gray-300">...</p>
                                     <div id="prevKetResepsiContainer" class="hidden pt-3 mt-4 border-t border-brand-goldMain/10">
-                                        <p id="prevKetResepsi" class="text-[10px] text-brand-goldLight italic bg-brand-goldMain/5 p-2 rounded border border-brand-goldMain/20"></p>
+                                        <p id="prevKetResepsi" class="target-event-ket text-[10px] text-brand-goldLight italic bg-brand-goldMain/5 p-2 rounded border border-brand-goldMain/20"></p>
                                     </div>
                                 </div>
                             </div>
@@ -233,7 +243,7 @@
                     <section id="sectionPenutup" class="snap-start shrink-0 w-full h-full overflow-y-auto overflow-x-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div class="glass-card rounded-2xl p-6 text-center w-full">
-                                <div id="prevTeksPenutup" class="font-sans text-[11px] text-gray-300 leading-relaxed mb-6"></div>
+                                <div id="prevTeksPenutup" class="target-closing-teks font-sans text-[11px] text-gray-300 leading-relaxed mb-6"></div>
                                 <p id="prevSalamHormat" class="target-closing-salam font-serif text-brand-goldMain mb-1 reveal-item">Kami yang berbahagia</p>
                                 <h3 id="prevHormat" class="target-closing-names text-brand-goldLight mb-4 reveal-item">... & ...</h3>
                             </div>
@@ -249,8 +259,8 @@
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div class="w-full mt-auto mb-8 flex justify-center">
                                 <div class="glass-card rounded-2xl p-6 relative text-center reveal-item w-full">
-                                    <h3 class="font-serif text-xl text-brand-goldMain mb-4">Turut Mengundang</h3>
-                                    <ul id="prevTurutMengundang" class="font-sans text-[11px] text-gray-300 text-left flex flex-col gap-2"></ul>
+                                    <h3 class="target-turut-title font-serif text-xl text-brand-goldMain mb-4">Turut Mengundang</h3>
+                                    <ul id="prevTurutMengundang" class="target-turut-list font-sans text-[11px] text-gray-300 text-left flex flex-col gap-2"></ul>
                                 </div>
                             </div>
                         </div>
@@ -283,20 +293,28 @@
                         <optgroup label="Halaman Depan (Cover)">
                             <option value="cover-title">Teks "The Wedding Of"</option>
                             <option value="cover-names">Nama Pengantin (Cover)</option>
+                            <option value="cover-yth">Teks "Kepada Yth. Tamu Undangan"</option>
                         </optgroup>
                         <optgroup label="Halaman Profil">
+                            <option value="profile-pembuka">Teks Pembuka</option>
                             <option value="profile-title">Judul "Mempelai Pria/Wanita"</option>
                             <option value="profile-names">Nama Pengantin Utama</option>
                             <option value="profile-ampersand">Simbol "&" (Dan)</option>
                             <option value="profile-parents">Teks Nama Orang Tua</option>
                         </optgroup>
                         <optgroup label="Halaman Acara">
-                            <option value="event-title">Judul Acara (Akad Nikah / Resepsi)</option>
+                            <option value="event-pengantar">Teks Pengantar Acara</option>
+                            <option value="event-title">Judul Acara (Akad / Resepsi)</option>
                             <option value="event-text">Info Acara (Tgl, Waktu, Tempat)</option>
+                            <option value="event-alamat">Teks Alamat Lengkap</option>
+                            <option value="event-ket">Keterangan Tambahan</option>
                         </optgroup>
                         <optgroup label="Halaman Penutup">
+                            <option value="closing-teks">Teks Penutup</option>
                             <option value="closing-salam">Teks Salam ("Kami yg berbahagia")</option>
                             <option value="closing-names">Nama Pengantin Bawah</option>
+                            <option value="turut-title">Judul "Turut Mengundang"</option>
+                            <option value="turut-list">Daftar "Turut Mengundang"</option>
                         </optgroup>
                     </select>
                 </div>
@@ -619,14 +637,22 @@
         const defaultDesignConfig = {
             'cover-title': { font: "'Lato', sans-serif", size: 1, y: 0 },
             'cover-names': { font: "'Great Vibes', cursive", size: 1, y: 0 },
+            'cover-yth': { font: "'Lato', sans-serif", size: 1, y: 0 },
+            'profile-pembuka': { font: "'Lato', sans-serif", size: 1, y: 0 },
             'profile-title': { font: "'Lato', sans-serif", size: 1, y: 0 },
             'profile-names': { font: "'Great Vibes', cursive", size: 1, y: 0 },
             'profile-ampersand': { font: "'Great Vibes', cursive", size: 1, y: 0 },
             'profile-parents': { font: "'Lato', sans-serif", size: 1, y: 0 },
+            'event-pengantar': { font: "'Lato', sans-serif", size: 1, y: 0 },
             'event-title': { font: "'Playfair Display', serif", size: 1, y: 0 },
             'event-text': { font: "'Lato', sans-serif", size: 1, y: 0 },
+            'event-alamat': { font: "'Lato', sans-serif", size: 1, y: 0 },
+            'event-ket': { font: "'Lato', sans-serif", size: 1, y: 0 },
+            'closing-teks': { font: "'Lato', sans-serif", size: 1, y: 0 },
             'closing-salam': { font: "'Playfair Display', serif", size: 1, y: 0 },
-            'closing-names': { font: "'Great Vibes', cursive", size: 1, y: 0 }
+            'closing-names': { font: "'Great Vibes', cursive", size: 1, y: 0 },
+            'turut-title': { font: "'Playfair Display', serif", size: 1, y: 0 },
+            'turut-list': { font: "'Lato', sans-serif", size: 1, y: 0 }
         };
 
         let designConfigMap = JSON.parse(localStorage.getItem('designConfigMap')) || defaultDesignConfig;
@@ -654,6 +680,7 @@
             else if (target.startsWith('profile-')) targetSectionId = 'sectionProfil';
             else if (target.startsWith('event-')) targetSectionId = 'sectionAkad'; 
             else if (target.startsWith('closing-')) targetSectionId = 'sectionPenutup';
+            else if (target.startsWith('turut-')) targetSectionId = 'sectionTurutMengundang';
 
             if (showCover) {
                 // Kembalikan preview ke halaman cover awal
