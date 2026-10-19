@@ -908,7 +908,10 @@
         <option value="emerald-sage">Emerald Sage (Botanikal Alam)</option>
     </optgroup>
 <optgroup label="Tema Konsep Spesifik (Baru)">
-    <option value="rustic-botanical">Rustic Botanical (Hijau Sage & Ivory)</option> <!-- TAMBAHKAN BARIS INI -->
+    <!-- Tambahkan baris ini di urutan pertama dalam optgroup -->
+    <option value="vogue-asymmetric">Vogue Asymmetric (Modern Rata Kanan)</option> 
+    
+    <option value="rustic-botanical">Rustic Botanical (Hijau Sage & Ivory)</option>
     <option value="rustic-vintage">Rustic Vintage (Kayu & Klasik)</option>
     <option value="neon-cyber">Neon Cyberpunk (Futuristik)</option>
     <option value="minimalist-mono">Minimalist Monokrom (Bersih)</option>
@@ -1172,11 +1175,12 @@
             }
         }, {passive: true});
 
-     // ==========================================
+   // ==========================================
         // TEMA DAN PRESET DESAIN KESELURUHAN
         // ==========================================
         const themePresets = {
             'midnight-gold': {
+                layoutMode: 'centered', // Format Klasik
                 colors: { bg: '#0A1128', bgImage: "url('https://www.transparenttextures.com/patterns/stardust.png')", bgSize: 'auto', cardBg: 'rgba(10, 17, 40, 0.6)', cardBorder: 'rgba(212, 175, 55, 0.2)', goldMain: '#D4AF37', goldLight: '#F9E596', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
                 design: {
                     'cover-title': { size: 1, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
@@ -1188,6 +1192,7 @@
                 }
             },
             'rose-gold': {
+                layoutMode: 'centered',
                 colors: { bg: '#2A0813', bgImage: "url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&q=80&w=600')", bgSize: 'cover', cardBg: 'rgba(42, 8, 19, 0.75)', cardBorder: 'rgba(232, 165, 178, 0.3)', goldMain: '#E8A5B2', goldLight: '#FCE4E8', leafGrad: 'linear-gradient(135deg, #FCE4E8, #E8A5B2)' },
                 design: {
                     'cover-title': { font: "'Lato', sans-serif", size: 0.9, x: 0, y: -10, mb: 10, r: 0, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.5, animDelay: 0.2 },
@@ -1204,6 +1209,7 @@
                 ]
             },
             'emerald-sage': {
+                layoutMode: 'centered',
                 colors: { bg: '#0B1D16', bgImage: "url('https://images.unsplash.com/photo-1500329587427-bc09886b16eb?auto=format&fit=crop&q=80&w=600')", bgSize: 'cover', cardBg: 'rgba(11, 29, 22, 0.75)', cardBorder: 'rgba(130, 192, 154, 0.3)', goldMain: '#82C09A', goldLight: '#D1E8DA', leafGrad: 'linear-gradient(135deg, #D1E8DA, #82C09A)' },
                 design: {
                     'cover-names': { font: "'Dancing Script', cursive", size: 1.2, x: 0, y: 0, mb: 20, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
@@ -1213,31 +1219,74 @@
                 }
             },
 
+            // ==========================================
+            // TEMA BARU: VOGUE ASYMMETRIC (LAYOUT KANAN)
+            // ==========================================
+            'vogue-asymmetric': {
+                layoutMode: 'asymmetric-right',
+                colors: { 
+                    bg: '#0F0F11', 
+                    bgImage: 'none', 
+                    bgSize: 'auto', 
+                    cardBg: 'rgba(20, 20, 25, 0.95)', 
+                    cardBorder: 'rgba(255, 255, 255, 0.1)', 
+                    goldMain: '#FFFFFF', 
+                    goldLight: '#A1A1AA', 
+                    textMain: '#FFFFFF',
+                    textSub: '#A1A1AA',
+                    leafGrad: 'linear-gradient(135deg, #A1A1AA, #FFFFFF)' 
+                },
+                design: {
+                    // --- HALAMAN COVER ---
+                    'cover-title': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: -10, mb: 15, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 2, animDelay: 0.2 },
+                    'cover-names': { font: "'Playfair Display', serif", size: 1.6, x: 0, y: 0, mb: 20, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
+                    'cover-yth': { font: "'Inter', sans-serif", size: 0.8, x: 0, y: 0, mb: 0 },
+                    
+                    // --- HALAMAN AKAD NIKAH ---
+                    'event-pengantar': { font: "'Inter', sans-serif", size: 0.85, x: 0, y: 0, mb: 15 },
+                    'akad-line': { lineType: 'solid', x: 0, y: 0, mb: 10 },
+                    'event-title': { font: "'Playfair Display', serif", size: 1.4, x: 0, mb: 15, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
+                    'akad-label-tgl': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
+                    'akad-tanggal': { font: "'Playfair Display', serif", size: 1.2, x: 0, y: 0, mb: 10 },
+                    'akad-label-wkt': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
+                    'akad-waktu': { font: "'Inter', sans-serif", size: 0.9, x: 0, y: 0, mb: 15 },
+                    'akad-label-tempat': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
+                    'akad-tempat': { font: "'Playfair Display', serif", size: 1.1, x: 0, y: 0, mb: 5 },
+                    'akad-alamat': { font: "'Inter', sans-serif", size: 0.8, x: 0, y: 0, mb: 0 },
+
+                    // --- HALAMAN RESEPSI ---
+                    'resepsi-line': { lineType: 'solid', x: 0, y: 0, mb: 15 },
+                    'resepsi-label-tgl': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
+                    'resepsi-hari': { font: "'Inter', sans-serif", size: 1, x: 0, y: 0, mb: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.6 },
+                    'resepsi-tanggal': { font: "'Playfair Display', serif", size: 2.2, x: 0, y: 0, mb: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
+                    'resepsi-bulan': { font: "'Inter', sans-serif", size: 0.85, x: 0, y: 0, mb: 0 },
+                    'resepsi-tahun': { font: "'Inter', sans-serif", size: 0.85, x: 0, y: 0, mb: 10 },
+                    'resepsi-label-wkt': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
+                    'resepsi-waktu': { font: "'Inter', sans-serif", size: 0.9, x: 0, y: 0, mb: 15, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.8 },
+                    'resepsi-label-tempat': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
+                    'resepsi-tempat': { font: "'Playfair Display', serif", size: 1.1, x: 0, y: 0, mb: 5 },
+                    'event-alamat': { font: "'Inter', sans-serif", size: 0.8, x: 0, y: 0, mb: 0 }
+                },
+                injectLines: [
+                    { parentId: 'cardCover', lineType: 'solid', y: -30, mb: 15, w: 40, x: 0 },
+                    { parentId: 'cardResepsi', lineType: 'solid', y: 25, mb: 10, w: 50, x: 0 },
+                    { parentId: 'cardAkad', lineType: 'solid', y: 20, mb: 10, w: 50, x: 0 }
+                ]
+            },
+
             // --- TEMA RUSTIC BOTANICAL (SAGE, FOREST & IVORY) ---
             'rustic-botanical': {
-    colors: { 
-        bg: '#FAF9F6', 
-        cardBg: 'rgba(255, 255, 255, 0.85)', 
-        cardBorder: 'rgba(156, 169, 134, 0.5)', 
-        goldMain: '#2C4C3B', // Hijau Forest
-        goldLight: '#9CA986', // Hijau Sage
-        leafGrad: 'linear-gradient(135deg, #9CA986, #2C4C3B)',
-        // TAMBAHKAN INI:
-        textMain: '#1A2421', // Untuk mengganti teks putih (text-white)
-        textSub: '#4B5563'   // Untuk mengganti teks abu-abu (text-gray-300)
-    },
+                layoutMode: 'centered',
+                colors: { bg: '#FAF9F6', cardBg: 'rgba(255, 255, 255, 0.85)', cardBorder: 'rgba(156, 169, 134, 0.5)', goldMain: '#2C4C3B', goldLight: '#9CA986', leafGrad: 'linear-gradient(135deg, #9CA986, #2C4C3B)', textMain: '#1A2421', textSub: '#4B5563' },
                 design: {
                     'cover-title': { font: "'Lato', sans-serif", size: 0.8, x: 0, y: -10, mb: 10, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
                     'cover-names': { font: "'Alex Brush', cursive", size: 2.2, x: 0, y: 0, mb: 15, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
                     'cover-yth': { font: "'Lora', serif", size: 1.2, x: 0, y: 10, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.8 },
-                    
                     'profile-names': { font: "'Alex Brush', cursive", size: 1.8, mb: 5 },
                     'profile-ampersand': { font: "'Alex Brush', cursive", size: 1.5, mb: 10 },
-                    
                     'event-title': { font: "'Alex Brush', cursive", size: 1.8, mb: 15, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
                     'akad-line': { lineType: 'solid', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
                     'resepsi-line': { lineType: 'solid', x: 0, y: 0, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
-                    
                     'resepsi-tanggal': { font: "'Lora', serif", size: 1.6, x: 0, y: -5, mb: 10, r: 0, animBase: 'customBounce {dur} ease forwards', animDur: 1.4, animDelay: 0.7 },
                     'resepsi-hari': { font: "'Lato', sans-serif", size: 1.1, x: 0, y: -3, mb: 5, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.5 },
                     'resepsi-waktu': { font: "'Lato', sans-serif", size: 0.9, x: 0, y: 5, mb: 12, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.9 }
@@ -1251,21 +1300,19 @@
 
             // --- TEMA ADAT BUGIS ---
             'adat-bugis': {
+                layoutMode: 'centered',
                 colors: { bg: '#062B1F', bgImage: "url('https://www.transparenttextures.com/patterns/cubes.png')", bgSize: 'auto', cardBg: 'rgba(6, 43, 31, 0.85)', cardBorder: 'rgba(212, 175, 55, 0.4)', goldMain: '#D4AF37', goldLight: '#F9E596', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
                 design: {
                     'cover-title': { font: "'Montserrat', sans-serif", size: 0.8, x: 0, y: -5, mb: 10, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
                     'cover-names': { font: "'Playfair Display', serif", size: 1.1, x: 0, y: 10, mb: 20, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.6 },
                     'event-title': { font: "'Cinzel', serif", size: 1.1, mb: 10, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    
                     'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1.6, x: -54, y: 10, mb: 10, r: 0, animBase: 'customBounce {dur} ease forwards', animDur: 1.4, animDelay: 0.8 },
                     'resepsi-bulan': { font: "'Poppins', sans-serif", size: 1.4, x: -55, y: 14, mb: 2, r: 0, customText: "OKTOBER", animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1, animDelay: 1 },
                     'resepsi-tahun': { font: "'Poppins', sans-serif", size: 1.8, x: -60, y: 14, mb: 6, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1, animDelay: 1.1 },
                     'resepsi-hari': { font: "'Montserrat', sans-serif", size: 1.3, x: -55, y: 19, mb: -5, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1, animDelay: 0.7 },
                     'resepsi-label-tgl': { font: "'Poppins', sans-serif", size: 0.8, x: -51, y: -3, mb: 2, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.5 },
-                    
                     'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 0.8, x: 49, y: -101, mb: 16, r: 0, customText: "Pukul<br>11.00 WIB<br>s/d Selesai", animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1.2 },
                     'resepsi-label-wkt': { font: "'Poppins', sans-serif", size: 0.8, x: 52, y: -152, mb: 2, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 1 },
-                    
                     'resepsi-tempat': { font: "'Cinzel', serif", size: 1, x: 0, y: 5, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1.4 },
                     'akad-line': { lineType: 'double', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
                     'resepsi-line': { lineType: 'double', x: -5, y: 2, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 }
@@ -1277,20 +1324,18 @@
                 ]
             },
 
-            // --- TEMA ADAT JAWA (Klasik Keraton & Posisi Bervariasi) ---
+            // --- TEMA ADAT JAWA ---
             'adat-jawa': {
+                layoutMode: 'centered',
                 colors: { bg: '#3E2723', bgImage: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')", bgSize: 'auto', cardBg: 'rgba(62, 39, 35, 0.9)', cardBorder: 'rgba(215, 204, 200, 0.3)', goldMain: '#D7CCC8', goldLight: '#EFEBE9', leafGrad: 'linear-gradient(135deg, #8D6E63, #D7CCC8)' },
                 design: {
                     'cover-title': { font: "'Cormorant Garamond', serif", size: 0.9, x: 0, y: -8, mb: 12, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
                     'cover-names': { font: "'Cormorant Garamond', serif", size: 1.4, x: 0, y: 5, mb: 15, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
                     'event-title': { font: "'Cormorant Garamond', serif", size: 1.2, mb: 10, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-
-                    // Posisi Resepsi Berpusat Klasik Simetris
                     'resepsi-tanggal': { font: "'Cormorant Garamond', serif", size: 1.5, x: 0, y: -2, mb: 5, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.6 },
                     'resepsi-hari': { font: "'Cormorant Garamond', serif", size: 1.1, x: 0, y: 0, mb: 5, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.4 },
                     'resepsi-waktu': { font: "'Poppins', sans-serif", size: 0.9, x: 0, y: 3, mb: 10, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.8 },
                     'resepsi-tempat': { font: "'Cormorant Garamond', serif", size: 1.1, x: 0, y: 4, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1 },
-
                     'akad-line': { lineType: 'solid', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
                     'resepsi-line': { lineType: 'solid', x: 0, y: 0, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 }
                 },
@@ -1301,20 +1346,18 @@
                 ]
             },
 
-            // --- TEMA ADAT MINANG (Megah Songket & Posisi Dinamis) ---
+            // --- TEMA ADAT MINANG ---
             'adat-minang': {
+                layoutMode: 'centered',
                 colors: { bg: '#4A0E17', bgImage: "url('https://www.transparenttextures.com/patterns/woven.png')", bgSize: 'auto', cardBg: 'rgba(74, 14, 23, 0.85)', cardBorder: 'rgba(212, 175, 55, 0.5)', goldMain: '#F9E596', goldLight: '#FFFFFF', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
                 design: {
                     'cover-title': { font: "'Cinzel', serif", size: 0.85, x: 0, y: -5, mb: 10, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
                     'cover-names': { font: "'Cinzel', serif", size: 1.2, x: 0, y: 5, mb: 20, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.6 },
                     'event-title': { font: "'Cinzel', serif", size: 1.1, mb: 10, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-
-                    // Posisi Resepsi Elegan Berjarak
                     'resepsi-tanggal': { font: "'Cinzel', serif", size: 1.4, x: 0, y: -5, mb: 10, r: 0, animBase: 'customBounce {dur} ease forwards', animDur: 1.4, animDelay: 0.7 },
                     'resepsi-hari': { font: "'Montserrat', sans-serif", size: 1.1, x: 0, y: -3, mb: 5, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.5 },
                     'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 0.9, x: 0, y: 5, mb: 12, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.9 },
                     'resepsi-tempat': { font: "'Cinzel', serif", size: 1.05, x: 0, y: 4, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1.1 },
-
                     'akad-line': { lineType: 'double', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
                     'resepsi-line': { lineType: 'double', x: 0, y: 0, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 }
                 },
@@ -1325,20 +1368,18 @@
                 ]
             },
 
-            // --- TEMA ADAT BALI (Hitam Prada Mewah & Artistik) ---
+            // --- TEMA ADAT BALI ---
             'adat-bali': {
+                layoutMode: 'centered',
                 colors: { bg: '#111111', bgImage: "url('https://www.transparenttextures.com/patterns/stardust.png')", bgSize: 'auto', cardBg: 'rgba(20, 20, 20, 0.8)', cardBorder: 'rgba(212, 175, 55, 0.6)', goldMain: '#D4AF37', goldLight: '#FFFFFF', leafGrad: 'linear-gradient(135deg, #FFFFFF, #D4AF37)' },
                 design: {
                     'cover-title': { font: "'Montserrat', sans-serif", size: 0.8, x: 0, y: -5, mb: 10, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
                     'cover-names': { font: "'Allura', cursive", size: 1.8, x: 0, y: 5, mb: 10, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.6, animDelay: 0.6 },
                     'event-title': { font: "'Playfair Display', serif", size: 1.1, mb: 10, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-
-                    // Posisi Resepsi Eksotis
                     'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1.5, x: 0, y: -5, mb: 5, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.6 },
                     'resepsi-hari': { font: "'Montserrat', sans-serif", size: 1.1, x: 0, y: -2, mb: 4, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.4 },
                     'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 0.9, x: 0, y: 2, mb: 10, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.8 },
                     'resepsi-tempat': { font: "'Playfair Display', serif", size: 1.1, x: 0, y: 5, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1 },
-
                     'akad-line': { lineType: 'gradient', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
                     'resepsi-line': { lineType: 'gradient', x: 0, y: 0, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 }
                 },
@@ -1347,8 +1388,10 @@
                     { parentId: 'cardResepsi', lineType: 'gradient', y: -10, mb: 10, w: 35 }
                 ]
             },
-            // --- TEMA RUSTIC VINTAGE (Kayu & Estetika Alam) ---
+
+            // --- TEMA RUSTIC VINTAGE ---
             'rustic-vintage': {
+                layoutMode: 'centered',
                 colors: { bg: '#EFEBE9', bgImage: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')", bgSize: 'auto', cardBg: 'rgba(239, 235, 233, 0.85)', cardBorder: 'rgba(141, 110, 99, 0.4)', goldMain: '#5D4037', goldLight: '#8D6E63', leafGrad: 'linear-gradient(135deg, #8D6E63, #D7CCC8)' },
                 design: {
                     'cover-title': { font: "'Cormorant Garamond', serif", size: 0.9, x: 0, y: -10, mb: 15, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 2, animDelay: 0.2 },
@@ -1359,14 +1402,15 @@
                     'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1.4, x: 0, y: 5, mb: 12, r: 0, animBase: 'customPulse {dur} infinite ease-in-out', animDur: 3, animDelay: 0.5 }
                 },
                 injectLines: [
-                    { parentId: 'cardCover', lineType: 'dotted', y: -25, mb: 15, w: 40 }, // Garis putus-putus di atas cover
+                    { parentId: 'cardCover', lineType: 'dotted', y: -25, mb: 15, w: 40 }, 
                     { parentId: 'cardProfil', lineType: 'dashed', y: 15, mb: 20, w: 60 },
                     { parentId: 'cardResepsi', lineType: 'dotted', y: 10, mb: 15, w: 30 }
                 ]
             },
 
-            // --- TEMA NEON CYBERPUNK (Modern, Pesta & Futuristik) ---
+            // --- TEMA NEON CYBERPUNK ---
             'neon-cyber': {
+                layoutMode: 'centered',
                 colors: { bg: '#050510', bgImage: "url('https://www.transparenttextures.com/patterns/carbon-fibre.png')", bgSize: 'auto', cardBg: 'rgba(5, 5, 16, 0.8)', cardBorder: 'rgba(0, 255, 255, 0.5)', goldMain: '#00FFFF', goldLight: '#FF00FF', leafGrad: 'linear-gradient(135deg, #00FFFF, #FF00FF)' },
                 design: {
                     'cover-title': { font: "'Inter', sans-serif", size: 0.8, x: 0, y: -5, mb: 12, r: 0, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
@@ -1378,14 +1422,15 @@
                     'resepsi-waktu': { font: "'Inter', sans-serif", size: 0.9, x: 0, y: 5, mb: 15, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1, animDelay: 0.6 }
                 },
                 injectLines: [
-                    { parentId: 'cardCover', lineType: 'solid', y: -20, mb: 10, w: 80 }, // Garis neon lebar
-                    { parentId: 'cardCover', lineType: 'solid', y: 30, mb: 0, w: 80 },  // Garis neon bawah
+                    { parentId: 'cardCover', lineType: 'solid', y: -20, mb: 10, w: 80 }, 
+                    { parentId: 'cardCover', lineType: 'solid', y: 30, mb: 0, w: 80 },  
                     { parentId: 'cardProfil', lineType: 'double', y: 20, mb: 20, w: 100 }
                 ]
             },
 
-            // --- TEMA MINIMALIS MONOKROM (Bersih, Elegan, Spasi Luas) ---
+            // --- TEMA MINIMALIS MONOKROM ---
             'minimalist-mono': {
+                layoutMode: 'centered',
                 colors: { bg: '#F8F9FA', bgImage: 'none', bgSize: 'auto', cardBg: 'rgba(255, 255, 255, 0.95)', cardBorder: 'rgba(0, 0, 0, 0.1)', goldMain: '#111111', goldLight: '#555555', leafGrad: 'linear-gradient(135deg, #CCCCCC, #EEEEEE)' },
                 design: {
                     'cover-title': { font: "'Lato', sans-serif", size: 0.7, x: 0, y: -15, mb: 20, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 2, animDelay: 0.2 },
@@ -1397,13 +1442,14 @@
                     'resepsi-waktu': { font: "'Lato', sans-serif", size: 0.85, x: 0, y: 0, mb: 15, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.7 }
                 },
                 injectLines: [
-                    { parentId: 'cardCover', lineType: 'solid', y: -40, mb: 25, w: 20 }, // Garis tipis minimalis
+                    { parentId: 'cardCover', lineType: 'solid', y: -40, mb: 25, w: 20 },
                     { parentId: 'cardResepsi', lineType: 'solid', y: 20, mb: 10, w: 20 }
                 ]
             },
 
-            // --- TEMA OCEAN BREEZE (Pantai, Biru Tropis, Santai) ---
+            // --- TEMA OCEAN BREEZE ---
             'ocean-breeze': {
+                layoutMode: 'centered',
                 colors: { bg: '#0A192F', bgImage: "url('https://www.transparenttextures.com/patterns/cubes.png')", bgSize: 'auto', cardBg: 'rgba(10, 25, 47, 0.75)', cardBorder: 'rgba(100, 255, 218, 0.3)', goldMain: '#64FFDA', goldLight: '#CCD6F6', leafGrad: 'linear-gradient(135deg, #64FFDA, #CCD6F6)' },
                 design: {
                     'cover-title': { font: "'Poppins', sans-serif", size: 0.8, x: 0, y: -5, mb: 10, r: 0, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.5, animDelay: 0.2 },
@@ -1419,8 +1465,9 @@
                 ]
             },
 
-            // --- TEMA ROYAL VELVET (Mewah, Ungu Gelap & Emas, Simetris Klasik) ---
+            // --- TEMA ROYAL VELVET ---
             'royal-velvet': {
+                layoutMode: 'centered',
                 colors: { bg: '#2A0A18', bgImage: "url('https://www.transparenttextures.com/patterns/stardust.png')", bgSize: 'auto', cardBg: 'rgba(42, 10, 24, 0.85)', cardBorder: 'rgba(212, 175, 55, 0.6)', goldMain: '#D4AF37', goldLight: '#F9E596', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
                 design: {
                     'cover-title': { font: "'Cinzel', serif", size: 0.9, x: 0, y: -10, mb: 15, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
@@ -1432,13 +1479,31 @@
                     'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 0.9, x: 0, y: 5, mb: 12, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.8 }
                 },
                 injectLines: [
-                    { parentId: 'cardCover', lineType: 'double', y: -30, mb: 15, w: 60 }, // Garis ganda mahkota
+                    { parentId: 'cardCover', lineType: 'double', y: -30, mb: 15, w: 60 },
                     { parentId: 'cardCover', lineType: 'double', y: 35, mb: 0, w: 60 },
                     { parentId: 'cardResepsi', lineType: 'double', y: 25, mb: 15, w: 40 }
                 ]
+            },
+
+            // ==========================================
+            // TEMA BARU: MODERN EDITORIAL (LAYOUT KIRI)
+            // ==========================================
+            'modern-editorial': {
+                layoutMode: 'editorial', // MEMICU LAYOUT RATA KIRI
+                colors: { bg: '#1A1A24', bgImage: 'none', bgSize: 'auto', cardBg: 'rgba(25, 25, 35, 0.8)', cardBorder: 'rgba(212, 175, 55, 0.4)', goldMain: '#D4AF37', goldLight: '#F9E596', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
+                design: {
+                    'cover-title': { font: "'Montserrat', sans-serif", size: 0.8, x: 0, y: 0, mb: 15 },
+                    'cover-names': { font: "'Playfair Display', serif", size: 1.5, x: 0, y: 0, mb: 15 },
+                    'event-title': { font: "'Playfair Display', serif", size: 1.2, mb: 10 },
+                    'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, mb: 0 }, // Ukuran ditangani langsung oleh HTML di layout editorial
+                    'resepsi-hari': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, mb: 0 },
+                    'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
+                    'akad-line': { lineType: 'solid' },
+                    'resepsi-line': { lineType: 'gradient' }
+                }
             }
         };
-    
+
   function changeTheme(themeName, isUserAction = false) {
             const select = document.getElementById('editTheme');
             const selectedTheme = themeName || (select ? select.value : 'midnight-gold');
@@ -1565,6 +1630,78 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
             }
 
             designConfigMap['selected-theme'] = selectedTheme;
+           
+       // --- 5. LOGIKA LAYOUT BERDASARKAN TEMA ---
+            const layoutMode = theme.layoutMode || 'centered';
+            
+            // Daftar kartu yang tata letaknya akan mengikuti tema secara dinamis
+            const cardsToAlign = [
+                document.getElementById('cardCover'),
+                document.getElementById('cardProfil'),
+                document.getElementById('cardAkad'),
+                document.getElementById('cardResepsi')
+            ];
+            
+            cardsToAlign.forEach(card => {
+                if (!card) return;
+                
+                // Cari sub-kontainer teks dan semua elemen garis pembatas
+                const innerFlexCols = card.querySelectorAll('.flex-col');
+                const lines = card.querySelectorAll('.target-akad-line, .target-resepsi-line, .custom-added-line');
+
+                if (layoutMode === 'editorial') {
+                    // --- TEMA RATA KIRI ---
+                    card.classList.remove('text-center', 'items-center', 'text-right', 'items-end');
+                    card.classList.add('text-left', 'items-start');
+                    card.style.setProperty('width', '100%', 'important'); // Lebarkan kartu
+                    
+                    innerFlexCols.forEach(inner => {
+                        inner.classList.remove('items-center', 'items-end');
+                        inner.classList.add('items-start');
+                    });
+                    
+                    // Tarik garis ke kiri
+                    lines.forEach(line => {
+                        line.style.setProperty('margin-left', '0', 'important');
+                        line.style.setProperty('margin-right', 'auto', 'important');
+                    });
+                    
+                } else if (layoutMode === 'asymmetric-right') {
+                    // --- TEMA RATA KANAN (VOGUE ASYMMETRIC) ---
+                    card.classList.remove('text-center', 'items-center', 'text-left', 'items-start');
+                    card.classList.add('text-right', 'items-end');
+                    card.style.setProperty('width', '100%', 'important'); // Lebarkan kartu agar teks rapat ke layar
+                    
+                    innerFlexCols.forEach(inner => {
+                        inner.classList.remove('items-center', 'items-start');
+                        inner.classList.add('items-end');
+                    });
+                    
+                    // Tarik garis ke kanan
+                    lines.forEach(line => {
+                        line.style.setProperty('margin-left', 'auto', 'important');
+                        line.style.setProperty('margin-right', '0', 'important');
+                    });
+                    
+                } else {
+                    // --- KEMBALIKAN KE RATA TENGAH (DEFAULT KLASIK) ---
+                    card.classList.remove('text-left', 'items-start', 'text-right', 'items-end');
+                    card.classList.add('text-center', 'items-center');
+                    card.style.removeProperty('width'); // Kembalikan ukuran kartu ke auto
+                    
+                    innerFlexCols.forEach(inner => {
+                        inner.classList.remove('items-start', 'items-end');
+                        inner.classList.add('items-center');
+                    });
+                    
+                    // Posisikan garis kembali ke tengah
+                    lines.forEach(line => {
+                        line.style.setProperty('margin-left', 'auto', 'important');
+                        line.style.setProperty('margin-right', 'auto', 'important');
+                    });
+                }
+            });
+
             localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
         }
 
