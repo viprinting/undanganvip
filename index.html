@@ -14,6 +14,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -41,6 +42,31 @@
     </script>
 
     <style>
+        /* Styling Kotak HP (Hanya aktif di Desktop & bukan fullscreen) */
+        @media (min-width: 1024px) {
+            .mockup-frame {
+                border: 12px solid #1a1a1e;
+                border-radius: 2.5rem;
+                box-shadow: 0 0 0 2px #3f3f46, 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                height: 85vh !important;
+            }
+            /* Membuat poni/notch kamera HP */
+            .mockup-frame::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 120px;
+                height: 25px;
+                background-color: #1a1a1e;
+                border-bottom-left-radius: 15px;
+                border-bottom-right-radius: 15px;
+                z-index: 1000;
+            }
+            #previewPanel { overflow-y: hidden !important; }
+        }
+
         body { background-color: #0f0f11; color: #f3f4f6; overflow: hidden; }
         
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -84,11 +110,25 @@
         .is-editing { outline: 2px dashed #D4AF37 !important; outline-offset: 4px; cursor: grab !important; user-select: none; z-index: 50; background: rgba(212, 175, 55, 0.1); border-radius: 4px; }
         .is-editing:active { cursor: grabbing !important; }
 
-        /* Fullscreen Preview Styling */
-        body.is-fullscreen #previewPanel { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 9999 !important; padding: 1rem !important; }
+       /* Fullscreen Preview Styling */
+        body.is-fullscreen #previewPanel { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 9999 !important; padding: 0 !important; }
         body.is-fullscreen #editorPanel { display: none !important; }
-        body.is-fullscreen #mockupContainer { width: 100% !important; max-width: 420px !important; height: 100% !important; max-height: 880px !important; margin-top: 2rem !important; }
+        
+        /* Modifikasi Mockup saat Fullscreen: Hilangkan bingkai, TAPI batas ukuran tetap 420px di tengah */
+        body.is-fullscreen #mockupContainer { 
+            width: 100% !important; 
+            max-width: 420px !important; /* Mempertahankan batas kotak konten */
+            height: 100vh !important; 
+            max-height: none !important; 
+            margin: 0 auto !important; /* Memposisikan kotak tepat di tengah layar */
+            border: none !important; /* Menghilangkan bingkai HP */
+            border-radius: 0 !important; /* Menghilangkan sudut melengkung */
+            box-shadow: none !important; /* Menghilangkan bayangan HP */
+        }
+        body.is-fullscreen #mockupContainer::before { display: none !important; } /* Sembunyikan poni/notch HP */
         body.is-fullscreen #exitFullscreenBtn { display: flex !important; }
+        body.is-fullscreen #previewLabel { display: none !important; }
+        body.is-fullscreen #toggleFullscreenBtn { display: none !important; }
 
         /* CSS Variabel untuk transformasi komponen */
         .target-cover-title { font-family: var(--f-cover-title, 'Lato') !important; font-size: calc(10px * var(--s-cover-title, 1)) !important; transform: translate(var(--x-cover-title, 0px), var(--y-cover-title, 0px)) rotate(var(--r-cover-title, 0deg)); position: relative; transition: transform 0s, margin 0.2s, font 0.2s; margin-bottom: calc(0.75rem + var(--mb-cover-title, 0px)) !important; display: inline-block; }
@@ -205,6 +245,19 @@
         @keyframes customSlideDown { from { transform: translate(var(--curr-x, 0px), calc(var(--curr-y, 0px) - 20px)) rotate(var(--curr-r, 0deg)); opacity: 0; } to { transform: translate(var(--curr-x, 0px), var(--curr-y, 0px)) rotate(var(--curr-r, 0deg)); opacity: 1; } }
         @keyframes customBounce { 0%, 20%, 50%, 80%, 100% { transform: translate(var(--curr-x, 0px), var(--curr-y, 0px)) rotate(var(--curr-r, 0deg)); } 40% { transform: translate(var(--curr-x, 0px), calc(var(--curr-y, 0px) - 30px)) rotate(var(--curr-r, 0deg)); } 60% { transform: translate(var(--curr-x, 0px), calc(var(--curr-y, 0px) - 15px)) rotate(var(--curr-r, 0deg)); } }
         @keyframes customRotate { from { transform: translate(var(--curr-x, 0px), var(--curr-y, 0px)) rotate(0deg); } to { transform: translate(var(--curr-x, 0px), var(--curr-y, 0px)) rotate(360deg); } }
+
+        /* Mode Edit: Mematikan Animasi Sementara */
+        body.disable-animations * {
+            animation: none !important;
+        }
+        body.disable-animations .reveal-item {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            transition: none !important;
+        }
+        body.disable-animations #leaf-container {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="overflow-hidden h-screen w-full font-['Inter'] relative bg-editor-bg">
@@ -247,7 +300,7 @@
             <span>Selesai (Tekan ESC)</span>
         </button>
 
-    <div id="mockupContainer" class="relative bg-transparent overflow-hidden z-10 transition-all duration-300" style="width: 100%; max-width: 420px; height: 100vh;">   
+    <div id="mockupContainer" class="relative bg-transparent overflow-hidden z-10 transition-all duration-300 mockup-frame" style="width: 100%; max-width: 420px; height: 100vh;">   
             <div id="preview-window" class="w-full h-full text-brand-textLight antialiased selection:bg-brand-goldMain selection:text-brand-bg font-sans bg-transparent">
 
                 <!-- Loading Screen Preview -->
@@ -629,6 +682,17 @@
                     </span>
                 </div>
                 
+                <div class="flex items-center justify-between bg-black/40 border border-brand-goldMain/30 p-3 rounded mb-4 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-goldMain"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        <span class="text-xs text-brand-goldLight font-bold">Putar Animasi (Preview)</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggleGlobalAnim" class="sr-only peer" checked onchange="toggleAnimState()">
+                        <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-goldMain"></div>
+                    </label>
+                </div>
+
                 <div class="input-group mb-2 relative z-10">
                     <label class="input-label text-brand-goldMain">1. Pilih Bagian yang Diedit:</label>
                     <select id="editTargetSelect" class="input-field border-brand-goldMain/50 font-bold bg-[#0A1128]" onchange="changeEditTarget()">
@@ -759,49 +823,13 @@
                 <div class="grid grid-cols-2 gap-4 border-t border-brand-goldMain/20 pt-4 relative z-10">
                     <div class="input-group mb-0 col-span-2">
                         <label class="input-label">Jenis Font (Abaikan jika elemen berupa Garis/Kotak)</label>
-                        <select id="editFontFamily" class="input-field" onchange="updatePreviewStyles()">
-                            <optgroup label="Teks Sambung (Script/Handwriting)">
-                                <option value="'Great Vibes', cursive">Great Vibes</option>
-                                <option value="'Dancing Script', cursive">Dancing Script</option>
-                                <option value="'Parisienne', cursive">Parisienne</option>
-                                <option value="'Sacramento', cursive">Sacramento</option>
-                                <option value="'Alex Brush', cursive">Alex Brush</option>
-                                <option value="'Tangerine', cursive">Tangerine</option>
-                                <option value="'Pinyon Script', cursive">Pinyon Script</option>
-                                <option value="'Allura', cursive">Allura</option>
-                                <option value="'Italianno', cursive">Italianno</option>
-                                <option value="'Rouge Script', cursive">Rouge Script</option>
-                            </optgroup>
-                            <optgroup label="Klasik & Formal (Serif)">
-    <option value="'Playfair Display', serif">Playfair Display</option>
-    <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
-    <option value="'Cinzel', serif">Cinzel</option>
-    <option value="'Lora', serif">Lora</option> <!-- TAMBAHKAN BARIS INI -->
-</optgroup>
-                            <optgroup label="Modern & Bersih (Sans-Serif)">
-                                <option value="'Lato', sans-serif">Lato</option>
-                                <option value="'Montserrat', sans-serif">Montserrat</option>
-                                <option value="'Poppins', sans-serif">Poppins</option>
-                                <option value="'Inter', sans-serif">Inter</option>
-                            </optgroup>
-                        </select>
+                        <select id="editFontFamily" class="input-field" onchange="updatePreviewStyles()"></select>
                     </div>
 
                     <!-- Dropdown Efek Animasi -->
                     <div class="input-group mb-0 col-span-2 md:col-span-1">
                         <label class="input-label">Efek Animasi Teks/Objek</label>
-                        <select id="editAnimation" class="input-field" onchange="updatePreviewStyles()">
-                            <option value="none">Tidak Ada</option>
-                            <option value="customFadeIn {dur} ease-in forwards">Fade In (Muncul)</option>
-                            <option value="customZoomIn {dur} ease-out forwards">Zoom In (Membesar)</option>
-                            <option value="customSlideUp {dur} ease-out forwards">Slide Up (Naik)</option>
-                            <option value="customSlideDown {dur} ease-out forwards">Slide Down (Turun)</option>
-                            <option value="customPulse {dur} infinite ease-in-out">Pulse (Denyut Lembut)</option>
-                            <option value="customGlow {dur} infinite alternate">Glow (Cahaya Emas)</option>
-                            <option value="customShake {dur} infinite ease-in-out">Shake (Getar)</option>
-                            <option value="customBounce {dur} ease forwards">Bounce (Memantul)</option>
-                            <option value="customRotate {dur} linear infinite">Rotate (Berputar)</option>
-                        </select>
+                        <select id="editAnimation" class="input-field" onchange="updatePreviewStyles()"></select>
                     </div>
 
                     <!-- Slider Durasi Animasi -->
@@ -901,30 +929,7 @@
                 </legend>
                 <div class="input-group mb-2 relative z-10 p-2">
                     <label class="input-label text-amber-300">Pilih Preset Tema:</label>
-        <select id="editTheme" class="input-field border-amber-500/50 font-bold bg-[#0A1128]" onchange="changeTheme(this.value, true)">
-    <optgroup label="Tema Modern & Internasional">
-        <option value="midnight-gold">Midnight Gold (Klasik & Elegan)</option>
-        <option value="rose-gold">Rose Gold (Romantis & Miring)</option>
-        <option value="emerald-sage">Emerald Sage (Botanikal Alam)</option>
-    </optgroup>
-<optgroup label="Tema Konsep Spesifik (Baru)">
-    <!-- Tambahkan baris ini di urutan pertama dalam optgroup -->
-    <option value="vogue-asymmetric">Vogue Asymmetric (Modern Rata Kanan)</option> 
-    
-    <option value="rustic-botanical">Rustic Botanical (Hijau Sage & Ivory)</option>
-    <option value="rustic-vintage">Rustic Vintage (Kayu & Klasik)</option>
-    <option value="neon-cyber">Neon Cyberpunk (Futuristik)</option>
-    <option value="minimalist-mono">Minimalist Monokrom (Bersih)</option>
-    <option value="ocean-breeze">Ocean Breeze (Biru Tropis)</option>
-    <option value="royal-velvet">Royal Velvet (Mewah Ungu Emas)</option>
-</optgroup>
-    <optgroup label="Tema Adat Nusantara">
-        <option value="adat-bugis">Adat Bugis/Makassar (Hijau Botol & Emas Sutra)</option>
-        <option value="adat-jawa">Adat Jawa (Cokelat Keraton & Batik)</option>
-        <option value="adat-minang">Adat Minang (Merah Megah & Songket)</option>
-        <option value="adat-bali">Adat Bali (Hitam Prada & Emas)</option>
-    </optgroup>
-</select>
+        <select id="editTheme" class="input-field border-amber-500/50 font-bold bg-[#0A1128]" onchange="changeTheme(this.value, true)"></select>
                     <p class="text-[10px] text-gray-400 mt-2">*Mengubah skema warna latar belakang, kartu, dan aksen warna undangan secara langsung.</p>
                 </div>
             </fieldset>
@@ -936,14 +941,7 @@
                 </legend>
                 <div class="input-group mb-2 relative z-10 p-2">
                     <label class="input-label text-pink-300">Pilih Musik Latar:</label>
-                    <select id="editMusic" class="input-field border-pink-500/50 font-bold bg-[#0A1128]" onchange="changeMusic()">
-    <option value="">-- Tanpa Musik --</option>
-    <option value="https://ia800300.us.archive.org/33/items/CanonInD_261/CanoninD.mp3">Canon in D - Pachelbel (Klasik Pernikahan)</option>
-    <option value="https://ia902606.us.archive.org/16/items/WeddingMarch_836/WeddingMarch.mp3">Wedding March - Mendelssohn (Klasik)</option>
-    <option value="https://ia800501.us.archive.org/8/items/BridalChorus/BridalChorus.mp3">Bridal Chorus - Wagner (Klasik)</option>
-    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Romantic Acoustic Instrumental (Testing)</option>
-    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3">Piano Emotional Instrumental (Testing)</option>
-</select>
+                 <select id="editMusic" class="input-field border-pink-500/50 font-bold bg-[#0A1128]" onchange="changeMusic()"></select>
                     <p class="text-[10px] text-gray-400 mt-2">*Musik akan otomatis diputar ketika tamu menekan tombol "Buka Undangan".</p>
                 </div>
             </fieldset>
@@ -963,12 +961,18 @@
             </fieldset>
 
             <fieldset class="border-emerald-500/40 bg-[#0f172a] relative overflow-hidden shadow-xl mt-4">
-                <legend class="text-emerald-400 font-bold bg-[#0f172a] px-2 rounded flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                    Manajemen Data
+                 <legend class="text-emerald-400 font-bold bg-[#0f172a] px-2 rounded flex items-center gap-2">
+                 Manajemen Data & Cloud
                 </legend>
                 <div class="flex flex-col gap-3 relative z-10">
-                    <p class="text-[11px] text-gray-400">Simpan desain Anda ke dalam file atau muat ulang desain yang pernah disimpan sebelumnya.</p>
+        
+                    <!-- TOMBOL SIMPAN KE SUPABASE BARU -->
+                    <button id="btnSaveCloud" type="button" onclick="saveToSupabase()" class="w-full flex justify-center items-center gap-2 bg-brand-goldMain text-black py-3 px-4 rounded-lg text-sm font-bold transition shadow-[0_0_15px_rgba(212,175,55,0.4)] hover:scale-[1.02]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                     Simpan Hasil Edit ke Database
+                    </button>
+
+                    <p class="text-[11px] text-gray-400 text-center mt-2">Selama mengedit, perubahan otomatis tersimpan di HP/Laptop (Local Storage). Klik tombol di atas agar tersimpan permanen di Cloud.</p>
                     <div class="flex gap-2">
                         <button type="button" onclick="exportConfig()" class="flex-1 flex justify-center items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/50 text-emerald-300 py-2.5 px-2 rounded-lg text-[11px] font-bold transition shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -982,96 +986,43 @@
                     </div>
                 </div>
             </fieldset>
+
+            <!-- TOMBOL BUAT BARU & BUKA PROJEK -->
+<div class="flex gap-2 mt-4 relative z-10 px-2">
+    <button type="button" onclick="buatProjekBaru()" class="flex-1 bg-blue-600/20 text-blue-300 border border-blue-500/50 py-3 rounded-lg text-xs font-bold hover:bg-blue-600/40 transition shadow-md flex justify-center items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Projek Baru
+    </button>
+    <button type="button" onclick="tampilkanModalProjek()" class="flex-1 bg-purple-600/20 text-purple-300 border border-purple-500/50 py-3 rounded-lg text-xs font-bold hover:bg-purple-600/40 transition shadow-md flex justify-center items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        Buka Projek
+    </button>
+</div>
+
+<!-- MODAL LIST PROJEK SUPABASE (Taruh tepat sebelum tag penutup </body>) -->
+<div id="modalProjek" class="fixed inset-0 bg-black/80 z-[9999] hidden flex justify-center items-center backdrop-blur-sm p-4">
+    <div class="bg-[#151a2d] border border-brand-goldMain/30 p-6 rounded-2xl w-full max-w-md shadow-[0_0_30px_rgba(0,0,0,0.8)] relative">
+        <button onclick="tutupModalProjek()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-black/50 rounded-full p-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <h2 class="text-xl text-brand-goldMain font-serif mb-1">Projek Tersimpan</h2>
+        <p class="text-[10px] text-gray-400 mb-4">Pilih projek yang ingin Anda lanjutkan pengeditannya.</p>
+        
+        <div id="listProjekContainer" class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2">
+            <!-- Isi list akan dimuat otomatis via Javascript -->
+        </div>
+    </div>
+</div>
+
         </form>
     </div>
 </div>
-    <script>
+   <script>
         // Initialize Lucide Icons
         lucide.createIcons();
 
-        const defaultDesignConfig = {
-            'cover-title': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'cover-names': { font: "'Great Vibes', cursive", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'cover-yth': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            // Konfigurasi Ayat Suci
-            'ayat-card': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'ayat-bismillah': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'ayat-arab': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'ayat-terjemahan': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            
-            // Konfigurasi Doa
-            'doa-card': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'doa-title': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'doa-arab': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'doa-terjemahan': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'profile-pembuka': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'profile-title': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'profile-names': { font: "'Great Vibes', cursive", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'profile-ampersand': { font: "'Great Vibes', cursive", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'profile-parents': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            
-            // New sections
-            'countdown-title': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'countdown-timer': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'countdown-card': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            
-            'event-pengantar': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'akad-line': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0, lineType: 'gradient' },
-            'akad-label-tgl': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'akad-label-wkt': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'akad-tanggal': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'akad-waktu': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'akad-label-tempat': { font: "'Inter', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'akad-tempat': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'akad-alamat': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            
-            'resepsi-waktu': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'resepsi-label-tempat': { font: "'Inter', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'resepsi-tempat': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'resepsi-line': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0, lineType: 'gradient' },
-            'resepsi-label-tgl': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'resepsi-label-wkt': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'event-title': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'resepsi-hari': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'resepsi-bulan': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'resepsi-tahun': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'event-alamat': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            
-            // New sections
-            'gallery-title': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'gallery-grid': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'gallery-card': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            
-            'gift-title': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'gift-bank': { font: "'Montserrat', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'gift-rek': { font: "'Inter', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'gift-nama': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'gift-card': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            
-            'rsvp-title': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'rsvp-card': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-
-            'closing-teks': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'closing-salam': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'closing-names': { font: "'Great Vibes', cursive", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'turut-title': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'turut-list': { font: "'Lato', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'turut-card': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'credit-card': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'credit-logo': { font: "inherit", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'credit-title': { font: "'Montserrat', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'credit-wa': { font: "'Inter', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 },
-            'credit-web': { font: "'Inter', sans-serif", size: 1, x: 0, y: 0, r: 0, mb: 0 }
-        };
-
-        
-        let designConfigMap = JSON.parse(localStorage.getItem('designConfigMap')) || { ...defaultDesignConfig };
-        for(let key in defaultDesignConfig) { 
-            if(!designConfigMap[key]) designConfigMap[key] = defaultDesignConfig[key]; 
-            else if(designConfigMap[key].x === undefined) designConfigMap[key].x = 0;
-            if(designConfigMap[key].r === undefined) designConfigMap[key].r = 0;
-        }
+        // 1. Inisialisasi State Desain Kosong (Kode defaultDesignConfig yang panjang telah dihapus)
+        let designConfigMap = JSON.parse(localStorage.getItem('designConfigMap')) || {};
 
         // ==========================================
         // DATA URUTAN HALAMAN DEFAULT
@@ -1091,7 +1042,6 @@
             { id: 'sectionCredit', name: 'Credit / Percetakan' }
         ];
 
-        // Pastikan konfigurasi menyimpan pengaturan urutan halaman
         if (!designConfigMap['page-order']) {
             designConfigMap['page-order'] = defaultPageOrder.map(p => p.id);
         }
@@ -1106,34 +1056,25 @@
             const navPreview = document.getElementById('navPreview');
             const navEditor = document.getElementById('navEditor');
             
-            if (window.innerWidth >= 1024) return; // Abaikan fungsi ini jika di layar Desktop
+            if (window.innerWidth >= 1024) return;
 
             if (view === 'editor') {
                 container.style.transform = 'translateX(-100vw)';
-                
-                // Ubah gaya tombol navigasi bawah
                 navEditor.classList.replace('text-brand-goldLight', 'text-[#0f0f11]');
                 navEditor.classList.replace('hover:bg-white/10', 'bg-brand-goldMain');
-                
                 navPreview.classList.replace('bg-brand-goldMain', 'hover:bg-white/10');
                 navPreview.classList.replace('text-[#0f0f11]', 'text-brand-goldLight');
-                
                 currentMobileView = 'editor';
             } else {
                 container.style.transform = 'translateX(0)';
-                
-                // Ubah gaya tombol navigasi bawah
                 navPreview.classList.replace('text-brand-goldLight', 'text-[#0f0f11]');
                 navPreview.classList.replace('hover:bg-white/10', 'bg-brand-goldMain');
-                
                 navEditor.classList.replace('bg-brand-goldMain', 'hover:bg-white/10');
                 navEditor.classList.replace('text-[#0f0f11]', 'text-brand-goldLight');
-                
                 currentMobileView = 'preview';
             }
         }
 
-        // Pastikan tampilan aman saat mengubah orientasi / ukuran layar HP ke Desktop
         window.addEventListener('resize', () => {
             const container = document.getElementById('appContainer');
             if (window.innerWidth >= 1024) {
@@ -1150,7 +1091,6 @@
         let swipeStartY = 0;
 
         document.getElementById('appContainer').addEventListener('touchstart', (e) => {
-            // Hindari swipe jika menyentuh input form, slider, atau isi dalam mockup (agar fitur geser komponen tak terganggu)
             if(e.target.closest('#mockupContainer') || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.closest('button')) return;
             swipeStartX = e.touches[0].clientX;
             swipeStartY = e.touches[0].clientY;
@@ -1165,352 +1105,152 @@
             let diffX = swipeEndX - swipeStartX;
             let diffY = swipeEndY - swipeStartY;
 
-            // Logika swipe: harus digeser horizontal (bukan vertical) dan panjang geser minimal 50px
             if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-                if (diffX < 0) {
-                    switchView('editor'); // Geser layar ke kiri (Membuka Editor)
-                } else {
-                    switchView('preview'); // Geser layar ke kanan (Membuka Preview)
-                }
+                if (diffX < 0) switchView('editor'); 
+                else switchView('preview'); 
             }
         }, {passive: true});
 
-   // ==========================================
-        // TEMA DAN PRESET DESAIN KESELURUHAN
         // ==========================================
-        const themePresets = {
-            'midnight-gold': {
-                layoutMode: 'centered', // Format Klasik
-                colors: { bg: '#0A1128', bgImage: "url('https://www.transparenttextures.com/patterns/stardust.png')", bgSize: 'auto', cardBg: 'rgba(10, 17, 40, 0.6)', cardBorder: 'rgba(212, 175, 55, 0.2)', goldMain: '#D4AF37', goldLight: '#F9E596', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
-                design: {
-                    'cover-title': { size: 1, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
-                    'cover-names': { font: "'Great Vibes', cursive", size: 1, x: 0, y: 0, mb: 0, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
-                    'event-title': { font: "'Playfair Display', serif", size: 1, mb: 0, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'resepsi-tanggal': { size: 1, x: 0, y: 0, mb: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.2, animDelay: 0.5 },
-                    'akad-line': { lineType: 'gradient', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'gradient', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 }
-                }
-            },
-            'rose-gold': {
-                layoutMode: 'centered',
-                colors: { bg: '#2A0813', bgImage: "url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&q=80&w=600')", bgSize: 'cover', cardBg: 'rgba(42, 8, 19, 0.75)', cardBorder: 'rgba(232, 165, 178, 0.3)', goldMain: '#E8A5B2', goldLight: '#FCE4E8', leafGrad: 'linear-gradient(135deg, #FCE4E8, #E8A5B2)' },
-                design: {
-                    'cover-title': { font: "'Lato', sans-serif", size: 0.9, x: 0, y: -10, mb: 10, r: 0, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.5, animDelay: 0.2 },
-                    'cover-names': { font: "'Parisienne', cursive", size: 1.2, x: 0, y: -10, mb: 10, r: -5, animBase: 'customPulse {dur} infinite ease-in-out', animDur: 2.5, animDelay: 0.8 }, 
-                    'event-title': { font: "'Cormorant Garamond', serif", size: 1.1, mb: 5, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.3 },
-                    'resepsi-tanggal': { font: "'Cormorant Garamond', serif", size: 1.3, x: 0, y: -5, mb: 5, r: -2, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.6 },
-                    'resepsi-hari': { font: "'Cormorant Garamond', serif", size: 1.1, x: 0, y: -5, mb: 0, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.4 },
-                    'akad-line': { lineType: 'dashed' },
-                    'resepsi-line': { lineType: 'dashed' }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'dashed', y: -25, mb: 15, w: 20 },
-                    { parentId: 'cardProfil', lineType: 'dashed', y: 10, mb: 15, w: 30 }
-                ]
-            },
-            'emerald-sage': {
-                layoutMode: 'centered',
-                colors: { bg: '#0B1D16', bgImage: "url('https://images.unsplash.com/photo-1500329587427-bc09886b16eb?auto=format&fit=crop&q=80&w=600')", bgSize: 'cover', cardBg: 'rgba(11, 29, 22, 0.75)', cardBorder: 'rgba(130, 192, 154, 0.3)', goldMain: '#82C09A', goldLight: '#D1E8DA', leafGrad: 'linear-gradient(135deg, #D1E8DA, #82C09A)' },
-                design: {
-                    'cover-names': { font: "'Dancing Script', cursive", size: 1.2, x: 0, y: 0, mb: 20, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
-                    'resepsi-tanggal': { size: 1.1, x: 0, y: 0, mb: 5, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.2, animDelay: 0.4 },
-                    'akad-line': { lineType: 'solid' },
-                    'resepsi-line': { lineType: 'solid' }
-                }
-            },
+        // 1. INISIALISASI SUPABASE
+        // ==========================================
+        const supabaseUrl = 'https://qnnacckoyfzrmvobwccb.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFubmFjY2tveWZ6cm12b2J3Y2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwOTIxNTEsImV4cCI6MjEwNzY2ODE1MX0.XbLOSpq1ylDjkxrDqoQBJIFAZp6RhsDiCiXn6kF9NjA';
+        
+        // UBAH NAMA VARIABEL DI BAWAH INI MENJADI supabaseClient
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-            // ==========================================
-            // TEMA BARU: VOGUE ASYMMETRIC (LAYOUT KANAN)
-            // ==========================================
-            'vogue-asymmetric': {
-                layoutMode: 'asymmetric-right',
-                colors: { 
-                    bg: '#0F0F11', 
-                    bgImage: 'none', 
-                    bgSize: 'auto', 
-                    cardBg: 'rgba(20, 20, 25, 0.95)', 
-                    cardBorder: 'rgba(255, 255, 255, 0.1)', 
-                    goldMain: '#FFFFFF', 
-                    goldLight: '#A1A1AA', 
-                    textMain: '#FFFFFF',
-                    textSub: '#A1A1AA',
-                    leafGrad: 'linear-gradient(135deg, #A1A1AA, #FFFFFF)' 
-                },
-                design: {
-                    // --- HALAMAN COVER ---
-                    'cover-title': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: -10, mb: 15, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 2, animDelay: 0.2 },
-                    'cover-names': { font: "'Playfair Display', serif", size: 1.6, x: 0, y: 0, mb: 20, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
-                    'cover-yth': { font: "'Inter', sans-serif", size: 0.8, x: 0, y: 0, mb: 0 },
-                    
-                    // --- HALAMAN AKAD NIKAH ---
-                    'event-pengantar': { font: "'Inter', sans-serif", size: 0.85, x: 0, y: 0, mb: 15 },
-                    'akad-line': { lineType: 'solid', x: 0, y: 0, mb: 10 },
-                    'event-title': { font: "'Playfair Display', serif", size: 1.4, x: 0, mb: 15, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'akad-label-tgl': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
-                    'akad-tanggal': { font: "'Playfair Display', serif", size: 1.2, x: 0, y: 0, mb: 10 },
-                    'akad-label-wkt': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
-                    'akad-waktu': { font: "'Inter', sans-serif", size: 0.9, x: 0, y: 0, mb: 15 },
-                    'akad-label-tempat': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
-                    'akad-tempat': { font: "'Playfair Display', serif", size: 1.1, x: 0, y: 0, mb: 5 },
-                    'akad-alamat': { font: "'Inter', sans-serif", size: 0.8, x: 0, y: 0, mb: 0 },
+        const urlParams = new URLSearchParams(window.location.search);
+        let CURRENT_DESIGN_ID = urlParams.get('id');
 
-                    // --- HALAMAN RESEPSI ---
-                    'resepsi-line': { lineType: 'solid', x: 0, y: 0, mb: 15 },
-                    'resepsi-label-tgl': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
-                    'resepsi-hari': { font: "'Inter', sans-serif", size: 1, x: 0, y: 0, mb: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.6 },
-                    'resepsi-tanggal': { font: "'Playfair Display', serif", size: 2.2, x: 0, y: 0, mb: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
-                    'resepsi-bulan': { font: "'Inter', sans-serif", size: 0.85, x: 0, y: 0, mb: 0 },
-                    'resepsi-tahun': { font: "'Inter', sans-serif", size: 0.85, x: 0, y: 0, mb: 10 },
-                    'resepsi-label-wkt': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
-                    'resepsi-waktu': { font: "'Inter', sans-serif", size: 0.9, x: 0, y: 0, mb: 15, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.8 },
-                    'resepsi-label-tempat': { font: "'Inter', sans-serif", size: 0.75, x: 0, y: 0, mb: 5 },
-                    'resepsi-tempat': { font: "'Playfair Display', serif", size: 1.1, x: 0, y: 0, mb: 5 },
-                    'event-alamat': { font: "'Inter', sans-serif", size: 0.8, x: 0, y: 0, mb: 0 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'solid', y: -30, mb: 15, w: 40, x: 0 },
-                    { parentId: 'cardResepsi', lineType: 'solid', y: 25, mb: 10, w: 50, x: 0 },
-                    { parentId: 'cardAkad', lineType: 'solid', y: 20, mb: 10, w: 50, x: 0 }
-                ]
-            },
+        if (!CURRENT_DESIGN_ID) {
+            CURRENT_DESIGN_ID = 'draft-' + Date.now();
+            window.history.replaceState(null, '', '?id=' + CURRENT_DESIGN_ID);
+        } 
+        
+        let dynamicThemePresets = {};
 
-            // --- TEMA RUSTIC BOTANICAL (SAGE, FOREST & IVORY) ---
-            'rustic-botanical': {
-                layoutMode: 'centered',
-                colors: { bg: '#FAF9F6', cardBg: 'rgba(255, 255, 255, 0.85)', cardBorder: 'rgba(156, 169, 134, 0.5)', goldMain: '#2C4C3B', goldLight: '#9CA986', leafGrad: 'linear-gradient(135deg, #9CA986, #2C4C3B)', textMain: '#1A2421', textSub: '#4B5563' },
-                design: {
-                    'cover-title': { font: "'Lato', sans-serif", size: 0.8, x: 0, y: -10, mb: 10, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
-                    'cover-names': { font: "'Alex Brush', cursive", size: 2.2, x: 0, y: 0, mb: 15, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
-                    'cover-yth': { font: "'Lora', serif", size: 1.2, x: 0, y: 10, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.8 },
-                    'profile-names': { font: "'Alex Brush', cursive", size: 1.8, mb: 5 },
-                    'profile-ampersand': { font: "'Alex Brush', cursive", size: 1.5, mb: 10 },
-                    'event-title': { font: "'Alex Brush', cursive", size: 1.8, mb: 15, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'akad-line': { lineType: 'solid', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'solid', x: 0, y: 0, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
-                    'resepsi-tanggal': { font: "'Lora', serif", size: 1.6, x: 0, y: -5, mb: 10, r: 0, animBase: 'customBounce {dur} ease forwards', animDur: 1.4, animDelay: 0.7 },
-                    'resepsi-hari': { font: "'Lato', sans-serif", size: 1.1, x: 0, y: -3, mb: 5, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.5 },
-                    'resepsi-waktu': { font: "'Lato', sans-serif", size: 0.9, x: 0, y: 5, mb: 12, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.9 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'solid', y: -25, mb: 15, w: 30 },
-                    { parentId: 'cardProfil', lineType: 'solid', y: 15, mb: 10, w: 40 },
-                    { parentId: 'cardResepsi', lineType: 'dashed', y: 18, mb: 10, w: 30 }
-                ]
-            },
+    async function fetchMasterData() {
+            try {
+                // GANTI supabase menjadi supabaseClient
+                const { data: fonts } = await supabaseClient.from('fonts').select('*').order('category');
+                const fontSelect = document.getElementById('editFontFamily');
+                let currentOptGroup = '';
+                fonts.forEach(f => {
+                    if(currentOptGroup !== f.category) {
+                        const optGroup = document.createElement('optgroup');
+                        optGroup.label = f.category;
+                        fontSelect.appendChild(optGroup);
+                        currentOptGroup = f.category;
+                    }
+                    fontSelect.lastChild.appendChild(new Option(f.label, f.value));
+                });
 
-            // --- TEMA ADAT BUGIS ---
-            'adat-bugis': {
-                layoutMode: 'centered',
-                colors: { bg: '#062B1F', bgImage: "url('https://www.transparenttextures.com/patterns/cubes.png')", bgSize: 'auto', cardBg: 'rgba(6, 43, 31, 0.85)', cardBorder: 'rgba(212, 175, 55, 0.4)', goldMain: '#D4AF37', goldLight: '#F9E596', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
-                design: {
-                    'cover-title': { font: "'Montserrat', sans-serif", size: 0.8, x: 0, y: -5, mb: 10, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
-                    'cover-names': { font: "'Playfair Display', serif", size: 1.1, x: 0, y: 10, mb: 20, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.6 },
-                    'event-title': { font: "'Cinzel', serif", size: 1.1, mb: 10, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1.6, x: -54, y: 10, mb: 10, r: 0, animBase: 'customBounce {dur} ease forwards', animDur: 1.4, animDelay: 0.8 },
-                    'resepsi-bulan': { font: "'Poppins', sans-serif", size: 1.4, x: -55, y: 14, mb: 2, r: 0, customText: "OKTOBER", animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1, animDelay: 1 },
-                    'resepsi-tahun': { font: "'Poppins', sans-serif", size: 1.8, x: -60, y: 14, mb: 6, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1, animDelay: 1.1 },
-                    'resepsi-hari': { font: "'Montserrat', sans-serif", size: 1.3, x: -55, y: 19, mb: -5, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1, animDelay: 0.7 },
-                    'resepsi-label-tgl': { font: "'Poppins', sans-serif", size: 0.8, x: -51, y: -3, mb: 2, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.5 },
-                    'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 0.8, x: 49, y: -101, mb: 16, r: 0, customText: "Pukul<br>11.00 WIB<br>s/d Selesai", animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1.2 },
-                    'resepsi-label-wkt': { font: "'Poppins', sans-serif", size: 0.8, x: 52, y: -152, mb: 2, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 1 },
-                    'resepsi-tempat': { font: "'Cinzel', serif", size: 1, x: 0, y: 5, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1.4 },
-                    'akad-line': { lineType: 'double', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'double', x: -5, y: 2, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'solid', y: -30, mb: 10, w: 40 },
-                    { parentId: 'cardProfil', lineType: 'double', y: 20, mb: 20, w: 60 },
-                    { parentId: 'cardResepsi', lineType: 'dotted', y: 15, mb: 10, w: 30 }
-                ]
-            },
+                const { data: anims } = await supabaseClient.from('animations').select('*');
+                const animSelect = document.getElementById('editAnimation');
+                anims.forEach(a => animSelect.add(new Option(a.label, a.value)));
 
-            // --- TEMA ADAT JAWA ---
-            'adat-jawa': {
-                layoutMode: 'centered',
-                colors: { bg: '#3E2723', bgImage: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')", bgSize: 'auto', cardBg: 'rgba(62, 39, 35, 0.9)', cardBorder: 'rgba(215, 204, 200, 0.3)', goldMain: '#D7CCC8', goldLight: '#EFEBE9', leafGrad: 'linear-gradient(135deg, #8D6E63, #D7CCC8)' },
-                design: {
-                    'cover-title': { font: "'Cormorant Garamond', serif", size: 0.9, x: 0, y: -8, mb: 12, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
-                    'cover-names': { font: "'Cormorant Garamond', serif", size: 1.4, x: 0, y: 5, mb: 15, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
-                    'event-title': { font: "'Cormorant Garamond', serif", size: 1.2, mb: 10, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'resepsi-tanggal': { font: "'Cormorant Garamond', serif", size: 1.5, x: 0, y: -2, mb: 5, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.6 },
-                    'resepsi-hari': { font: "'Cormorant Garamond', serif", size: 1.1, x: 0, y: 0, mb: 5, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.4 },
-                    'resepsi-waktu': { font: "'Poppins', sans-serif", size: 0.9, x: 0, y: 3, mb: 10, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.8 },
-                    'resepsi-tempat': { font: "'Cormorant Garamond', serif", size: 1.1, x: 0, y: 4, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1 },
-                    'akad-line': { lineType: 'solid', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'solid', x: 0, y: 0, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'solid', y: 30, mb: 0, w: 50 },
-                    { parentId: 'cardAkad', lineType: 'solid', y: 25, mb: 0, w: 40 },
-                    { parentId: 'cardResepsi', lineType: 'solid', y: -15, mb: 10, w: 45 }
-                ]
-            },
+                const { data: musics } = await supabaseClient.from('musics').select('*');
+                const musicSelect = document.getElementById('editMusic');
+                musics.forEach(m => musicSelect.add(new Option(m.label, m.url)));
 
-            // --- TEMA ADAT MINANG ---
-            'adat-minang': {
-                layoutMode: 'centered',
-                colors: { bg: '#4A0E17', bgImage: "url('https://www.transparenttextures.com/patterns/woven.png')", bgSize: 'auto', cardBg: 'rgba(74, 14, 23, 0.85)', cardBorder: 'rgba(212, 175, 55, 0.5)', goldMain: '#F9E596', goldLight: '#FFFFFF', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
-                design: {
-                    'cover-title': { font: "'Cinzel', serif", size: 0.85, x: 0, y: -5, mb: 10, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
-                    'cover-names': { font: "'Cinzel', serif", size: 1.2, x: 0, y: 5, mb: 20, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.6 },
-                    'event-title': { font: "'Cinzel', serif", size: 1.1, mb: 10, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'resepsi-tanggal': { font: "'Cinzel', serif", size: 1.4, x: 0, y: -5, mb: 10, r: 0, animBase: 'customBounce {dur} ease forwards', animDur: 1.4, animDelay: 0.7 },
-                    'resepsi-hari': { font: "'Montserrat', sans-serif", size: 1.1, x: 0, y: -3, mb: 5, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.5 },
-                    'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 0.9, x: 0, y: 5, mb: 12, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.9 },
-                    'resepsi-tempat': { font: "'Cinzel', serif", size: 1.05, x: 0, y: 4, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1.1 },
-                    'akad-line': { lineType: 'double', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'double', x: 0, y: 0, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'double', y: -20, mb: 15, w: 30 },
-                    { parentId: 'cardProfil', lineType: 'solid', y: 15, mb: 10, w: 50 },
-                    { parentId: 'cardResepsi', lineType: 'double', y: 18, mb: 10, w: 40 }
-                ]
-            },
+                const { data: themes } = await supabaseClient.from('themes').select('*');
+                const themeSelect = document.getElementById('editTheme');
+                let themeGroup = '';
+                themes.forEach(t => {
+                    if(themeGroup !== t.category) {
+                        const group = document.createElement('optgroup');
+                        group.label = t.category;
+                        themeSelect.appendChild(group);
+                        themeGroup = t.category;
+                    }
+                    themeSelect.lastChild.appendChild(new Option(t.label, t.id));
 
-            // --- TEMA ADAT BALI ---
-            'adat-bali': {
-                layoutMode: 'centered',
-                colors: { bg: '#111111', bgImage: "url('https://www.transparenttextures.com/patterns/stardust.png')", bgSize: 'auto', cardBg: 'rgba(20, 20, 20, 0.8)', cardBorder: 'rgba(212, 175, 55, 0.6)', goldMain: '#D4AF37', goldLight: '#FFFFFF', leafGrad: 'linear-gradient(135deg, #FFFFFF, #D4AF37)' },
-                design: {
-                    'cover-title': { font: "'Montserrat', sans-serif", size: 0.8, x: 0, y: -5, mb: 10, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
-                    'cover-names': { font: "'Allura', cursive", size: 1.8, x: 0, y: 5, mb: 10, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.6, animDelay: 0.6 },
-                    'event-title': { font: "'Playfair Display', serif", size: 1.1, mb: 10, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1.5, x: 0, y: -5, mb: 5, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.6 },
-                    'resepsi-hari': { font: "'Montserrat', sans-serif", size: 1.1, x: 0, y: -2, mb: 4, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.4 },
-                    'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 0.9, x: 0, y: 2, mb: 10, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.8 },
-                    'resepsi-tempat': { font: "'Playfair Display', serif", size: 1.1, x: 0, y: 5, mb: 0, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 1 },
-                    'akad-line': { lineType: 'gradient', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'gradient', x: 0, y: 0, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1, animDelay: 0.2 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'gradient', y: 25, mb: 5, w: 40 },
-                    { parentId: 'cardResepsi', lineType: 'gradient', y: -10, mb: 10, w: 35 }
-                ]
-            },
-
-            // --- TEMA RUSTIC VINTAGE ---
-            'rustic-vintage': {
-                layoutMode: 'centered',
-                colors: { bg: '#EFEBE9', bgImage: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')", bgSize: 'auto', cardBg: 'rgba(239, 235, 233, 0.85)', cardBorder: 'rgba(141, 110, 99, 0.4)', goldMain: '#5D4037', goldLight: '#8D6E63', leafGrad: 'linear-gradient(135deg, #8D6E63, #D7CCC8)' },
-                design: {
-                    'cover-title': { font: "'Cormorant Garamond', serif", size: 0.9, x: 0, y: -10, mb: 15, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 2, animDelay: 0.2 },
-                    'cover-names': { font: "'Dancing Script', cursive", size: 1.5, x: 0, y: 0, mb: 20, r: -3, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
-                    'event-title': { font: "'Playfair Display', serif", size: 1.2, mb: 10, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'akad-line': { lineType: 'dotted', animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'dotted', x: 0, y: 0, mb: 10, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1, animDelay: 0.2 },
-                    'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1.4, x: 0, y: 5, mb: 12, r: 0, animBase: 'customPulse {dur} infinite ease-in-out', animDur: 3, animDelay: 0.5 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'dotted', y: -25, mb: 15, w: 40 }, 
-                    { parentId: 'cardProfil', lineType: 'dashed', y: 15, mb: 20, w: 60 },
-                    { parentId: 'cardResepsi', lineType: 'dotted', y: 10, mb: 15, w: 30 }
-                ]
-            },
-
-            // --- TEMA NEON CYBERPUNK ---
-            'neon-cyber': {
-                layoutMode: 'centered',
-                colors: { bg: '#050510', bgImage: "url('https://www.transparenttextures.com/patterns/carbon-fibre.png')", bgSize: 'auto', cardBg: 'rgba(5, 5, 16, 0.8)', cardBorder: 'rgba(0, 255, 255, 0.5)', goldMain: '#00FFFF', goldLight: '#FF00FF', leafGrad: 'linear-gradient(135deg, #00FFFF, #FF00FF)' },
-                design: {
-                    'cover-title': { font: "'Inter', sans-serif", size: 0.8, x: 0, y: -5, mb: 12, r: 0, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1, animDelay: 0.2 },
-                    'cover-names': { font: "'Montserrat', sans-serif", size: 1.3, x: 0, y: 5, mb: 20, r: 0, animBase: 'customGlow {dur} infinite alternate', animDur: 1.5, animDelay: 0.5 },
-                    'event-title': { font: "'Montserrat', sans-serif", size: 1.1, mb: 15, r: -2, animBase: 'customShake {dur} infinite ease-in-out', animDur: 3, animDelay: 0 },
-                    'akad-line': { lineType: 'solid', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 0.8, animDelay: 0.1 },
-                    'resepsi-line': { lineType: 'solid', x: 0, y: 0, mb: 15, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 0.8, animDelay: 0.1 },
-                    'resepsi-tanggal': { font: "'Inter', sans-serif", size: 1.8, x: 0, y: -5, mb: 10, r: 0, animBase: 'customBounce {dur} ease forwards', animDur: 1, animDelay: 0.4 },
-                    'resepsi-waktu': { font: "'Inter', sans-serif", size: 0.9, x: 0, y: 5, mb: 15, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1, animDelay: 0.6 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'solid', y: -20, mb: 10, w: 80 }, 
-                    { parentId: 'cardCover', lineType: 'solid', y: 30, mb: 0, w: 80 },  
-                    { parentId: 'cardProfil', lineType: 'double', y: 20, mb: 20, w: 100 }
-                ]
-            },
-
-            // --- TEMA MINIMALIS MONOKROM ---
-            'minimalist-mono': {
-                layoutMode: 'centered',
-                colors: { bg: '#F8F9FA', bgImage: 'none', bgSize: 'auto', cardBg: 'rgba(255, 255, 255, 0.95)', cardBorder: 'rgba(0, 0, 0, 0.1)', goldMain: '#111111', goldLight: '#555555', leafGrad: 'linear-gradient(135deg, #CCCCCC, #EEEEEE)' },
-                design: {
-                    'cover-title': { font: "'Lato', sans-serif", size: 0.7, x: 0, y: -15, mb: 20, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 2, animDelay: 0.2 },
-                    'cover-names': { font: "'Playfair Display', serif", size: 1.4, x: 0, y: 0, mb: 25, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 2, animDelay: 0.6 },
-                    'event-title': { font: "'Lato', sans-serif", size: 1, mb: 20, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.3 },
-                    'akad-line': { lineType: 'solid', animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'solid', x: 0, y: 0, mb: 20, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
-                    'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1.6, x: 0, y: 0, mb: 15, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 },
-                    'resepsi-waktu': { font: "'Lato', sans-serif", size: 0.85, x: 0, y: 0, mb: 15, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.7 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'solid', y: -40, mb: 25, w: 20 },
-                    { parentId: 'cardResepsi', lineType: 'solid', y: 20, mb: 10, w: 20 }
-                ]
-            },
-
-            // --- TEMA OCEAN BREEZE ---
-            'ocean-breeze': {
-                layoutMode: 'centered',
-                colors: { bg: '#0A192F', bgImage: "url('https://www.transparenttextures.com/patterns/cubes.png')", bgSize: 'auto', cardBg: 'rgba(10, 25, 47, 0.75)', cardBorder: 'rgba(100, 255, 218, 0.3)', goldMain: '#64FFDA', goldLight: '#CCD6F6', leafGrad: 'linear-gradient(135deg, #64FFDA, #CCD6F6)' },
-                design: {
-                    'cover-title': { font: "'Poppins', sans-serif", size: 0.8, x: 0, y: -5, mb: 10, r: 0, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.5, animDelay: 0.2 },
-                    'cover-names': { font: "'Sacramento', cursive", size: 1.8, x: 0, y: 5, mb: 15, r: -5, animBase: 'customPulse {dur} infinite ease-in-out', animDur: 3, animDelay: 0.5 },
-                    'event-title': { font: "'Sacramento', cursive", size: 1.6, mb: 10, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'akad-line': { lineType: 'gradient', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'gradient', x: 0, y: 0, mb: 15, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.2 },
-                    'resepsi-tanggal': { font: "'Poppins', sans-serif", size: 1.5, x: 0, y: 0, mb: 10, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.5, animDelay: 0.5 }
-                },
-                injectLines: [
-                    { parentId: 'cardProfil', lineType: 'gradient', y: 15, mb: 20, w: 40 },
-                    { parentId: 'cardGallery', lineType: 'dashed', y: -10, mb: 15, w: 50 }
-                ]
-            },
-
-            // --- TEMA ROYAL VELVET ---
-            'royal-velvet': {
-                layoutMode: 'centered',
-                colors: { bg: '#2A0A18', bgImage: "url('https://www.transparenttextures.com/patterns/stardust.png')", bgSize: 'auto', cardBg: 'rgba(42, 10, 24, 0.85)', cardBorder: 'rgba(212, 175, 55, 0.6)', goldMain: '#D4AF37', goldLight: '#F9E596', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
-                design: {
-                    'cover-title': { font: "'Cinzel', serif", size: 0.9, x: 0, y: -10, mb: 15, r: 0, animBase: 'customFadeIn {dur} ease-in forwards', animDur: 1.5, animDelay: 0.2 },
-                    'cover-names': { font: "'Great Vibes', cursive", size: 1.6, x: 0, y: 5, mb: 20, r: 0, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.5, animDelay: 0.6 },
-                    'event-title': { font: "'Cinzel', serif", size: 1.2, mb: 15, animBase: 'customSlideDown {dur} ease-out forwards', animDur: 1.2, animDelay: 0.3 },
-                    'akad-line': { lineType: 'double', animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.2, animDelay: 0.2 },
-                    'resepsi-line': { lineType: 'double', x: 0, y: 0, mb: 15, animBase: 'customZoomIn {dur} ease-out forwards', animDur: 1.2, animDelay: 0.2 },
-                    'resepsi-tanggal': { font: "'Cinzel', serif", size: 1.6, x: 0, y: 5, mb: 10, r: 0, animBase: 'customBounce {dur} ease forwards', animDur: 1.5, animDelay: 0.6 },
-                    'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 0.9, x: 0, y: 5, mb: 12, r: 0, animBase: 'customSlideUp {dur} ease-out forwards', animDur: 1.2, animDelay: 0.8 }
-                },
-                injectLines: [
-                    { parentId: 'cardCover', lineType: 'double', y: -30, mb: 15, w: 60 },
-                    { parentId: 'cardCover', lineType: 'double', y: 35, mb: 0, w: 60 },
-                    { parentId: 'cardResepsi', lineType: 'double', y: 25, mb: 15, w: 40 }
-                ]
-            },
-
-            // ==========================================
-            // TEMA BARU: MODERN EDITORIAL (LAYOUT KIRI)
-            // ==========================================
-            'modern-editorial': {
-                layoutMode: 'editorial', // MEMICU LAYOUT RATA KIRI
-                colors: { bg: '#1A1A24', bgImage: 'none', bgSize: 'auto', cardBg: 'rgba(25, 25, 35, 0.8)', cardBorder: 'rgba(212, 175, 55, 0.4)', goldMain: '#D4AF37', goldLight: '#F9E596', leafGrad: 'linear-gradient(135deg, #F9E596, #D4AF37)' },
-                design: {
-                    'cover-title': { font: "'Montserrat', sans-serif", size: 0.8, x: 0, y: 0, mb: 15 },
-                    'cover-names': { font: "'Playfair Display', serif", size: 1.5, x: 0, y: 0, mb: 15 },
-                    'event-title': { font: "'Playfair Display', serif", size: 1.2, mb: 10 },
-                    'resepsi-tanggal': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, mb: 0 }, // Ukuran ditangani langsung oleh HTML di layout editorial
-                    'resepsi-hari': { font: "'Playfair Display', serif", size: 1, x: 0, y: 0, mb: 0 },
-                    'resepsi-waktu': { font: "'Montserrat', sans-serif", size: 1, x: 0, y: 0, mb: 0 },
-                    'akad-line': { lineType: 'solid' },
-                    'resepsi-line': { lineType: 'gradient' }
-                }
+                    dynamicThemePresets[t.id] = {
+                        layoutMode: t.layout_mode,
+                        colors: t.colors,
+                        design: t.design_overrides,
+                        injectLines: t.inject_lines
+                    };
+                });
+            } catch (error) {
+                console.error("Gagal menarik data master:", error);
             }
-        };
+        }
+ 
+        async function initDesignData() {
+            let localData = localStorage.getItem('designConfigMap');
+            
+            if (!localData || localData === "{}") {
+                document.getElementById('loadingText').innerText = "Mengunduh desain dari Cloud...";
+                
+                // GANTI supabase menjadi supabaseClient
+                const { data, error } = await supabaseClient
+                    .from('invitation_designs')
+                    .select('design_data')
+                    .eq('design_id', CURRENT_DESIGN_ID)
+                    .single();
 
-  function changeTheme(themeName, isUserAction = false) {
+                if (data && data.design_data) {
+                    designConfigMap = data.design_data;
+                    localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
+                } else {
+                    designConfigMap = {}; // Reset jika kosong
+                }
+            } else {
+                designConfigMap = JSON.parse(localData);
+            }
+            muatData();
+        }
+
+      async function saveToSupabase() {
+            const btn = document.getElementById('btnSaveCloud');
+            const oriText = btn.innerHTML;
+            btn.innerHTML = 'Menyimpan...';
+            btn.disabled = true;
+
+            try {
+                // GANTI supabase menjadi supabaseClient
+                const { data, error } = await supabaseClient
+                    .from('invitation_designs')
+                    .upsert({
+                        design_id: CURRENT_DESIGN_ID,
+                        design_data: designConfigMap,
+                        updated_at: new Date()
+                    }, { onConflict: 'design_id' });
+
+                if (error) throw error;
+                alert('Data berhasil disimpan ke Database (Supabase)!');
+            } catch (error) {
+                console.error('Error menyimpan:', error);
+                alert('Gagal menyimpan ke database.');
+            } finally {
+                btn.innerHTML = oriText;
+                btn.disabled = false;
+            }
+        }
+
+        window.onload = async function() {
+            createFallingLeaves();
+            initCountdown();
+            await fetchMasterData(); 
+            await initDesignData(); 
+            initCustomElements();
+        }
+
+        // ==========================================
+        // TEMA DAN PRESET DESAIN
+        // ==========================================
+        function changeTheme(themeName, isUserAction = false) {
             const select = document.getElementById('editTheme');
             const selectedTheme = themeName || (select ? select.value : 'midnight-gold');
             
             if (select) select.value = selectedTheme;
 
-            const theme = themePresets[selectedTheme] || themePresets['midnight-gold'];
+            // Menggunakan dynamicThemePresets
+            const theme = dynamicThemePresets[selectedTheme] || dynamicThemePresets['midnight-gold'];
+            if(!theme) return; // Mencegah error jika tema belum termuat
+            
             const colors = theme.colors;
             const designOverrides = theme.design;
             
@@ -1541,38 +1281,35 @@
                 document.querySelectorAll('.text-brand-goldMain').forEach(el => el.style.color = colors.goldMain);
                 document.querySelectorAll('.text-brand-goldLight').forEach(el => el.style.color = colors.goldLight);
                 document.querySelectorAll('.border-brand-goldMain').forEach(el => el.style.borderColor = colors.goldMain);
-           // Tambahkan pengecekan apakah tema memiliki warna teks khusus
-const mainTextColor = colors.textMain || '#FFFFFF'; // Default putih jika tidak diatur
-const subTextColor = colors.textSub || '#D1D5DB';   // Default abu-abu jika tidak diatur
+                
+                const mainTextColor = colors.textMain || '#FFFFFF'; 
+                const subTextColor = colors.textSub || '#D1D5DB';   
 
-// Ubah paksa warna elemen yang tadinya menggunakan class Tailwind statis
-document.querySelectorAll('.text-white').forEach(el => el.style.setProperty('color', mainTextColor, 'important'));
-document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.style.setProperty('color', subTextColor, 'important'));
+                document.querySelectorAll('.text-white').forEach(el => el.style.setProperty('color', mainTextColor, 'important'));
+                document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.style.setProperty('color', subTextColor, 'important'));
             }
 
             // --- 2. RESET KESELURUHAN (Clean Slate) ---
             if (isUserAction && designOverrides) {
-                
-                // Hapus SEMUA garis tambahan (Baik dari kustom user maupun tema lama) dari HTML
                 document.querySelectorAll('.custom-added-line').forEach(el => el.remove());
 
                 for (let k in designConfigMap) {
-                    // Hapus garis dari memori
+                    if (k === 'page-order' || k === 'selected-theme' || k === 'selected-music') continue;
+
                     if (k.startsWith('custom-line-') || k.startsWith('theme-line-')) {
                         delete designConfigMap[k];
-                    } else if (defaultDesignConfig[k]) {
-                        // Reset Font, Letak, dan Animasi ke kondisi default awal
-                        designConfigMap[k].font = defaultDesignConfig[k].font || "inherit";
-                        designConfigMap[k].size = defaultDesignConfig[k].size || 1;
-                        designConfigMap[k].x = defaultDesignConfig[k].x || 0;
-                        designConfigMap[k].y = defaultDesignConfig[k].y || 0;
-                        designConfigMap[k].mb = defaultDesignConfig[k].mb || 0;
-                        designConfigMap[k].r = defaultDesignConfig[k].r || 0;
-                        
-                        designConfigMap[k].animBase = defaultDesignConfig[k].animBase || 'none';
-                        designConfigMap[k].animDur = defaultDesignConfig[k].animDur || 1.5;
-                        designConfigMap[k].animDelay = defaultDesignConfig[k].animDelay || 0;
-                        designConfigMap[k].anim = defaultDesignConfig[k].anim || 'none';
+                    } else {
+                        // Reset properties ke default base
+                        designConfigMap[k].font = "inherit";
+                        designConfigMap[k].size = 1;
+                        designConfigMap[k].x = 0;
+                        designConfigMap[k].y = 0;
+                        designConfigMap[k].mb = 0;
+                        designConfigMap[k].r = 0;
+                        designConfigMap[k].animBase = 'none';
+                        designConfigMap[k].animDur = 1.5;
+                        designConfigMap[k].animDelay = 0;
+                        designConfigMap[k].anim = 'none';
 
                         if (['resepsi-bulan', 'resepsi-tahun', 'resepsi-waktu'].includes(k)) {
                             designConfigMap[k].customText = null;
@@ -1582,19 +1319,17 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
 
                 // --- 3. TERAPKAN KONFIGURASI TEMA BARU ---
                 for (let key in designOverrides) {
-                    if (!designConfigMap[key]) designConfigMap[key] = { ...defaultDesignConfig[key] };
+                    if (!designConfigMap[key]) designConfigMap[key] = { font: "inherit", size: 1, x: 0, y: 0, mb: 0, r: 0 };
                     
                     if (designOverrides[key].font !== undefined) designConfigMap[key].font = designOverrides[key].font;
                     if (designOverrides[key].size !== undefined) designConfigMap[key].size = designOverrides[key].size;
                     if (designOverrides[key].lineType !== undefined) designConfigMap[key].lineType = designOverrides[key].lineType;
-                    
                     if (designOverrides[key].x !== undefined) designConfigMap[key].x = designOverrides[key].x;
                     if (designOverrides[key].y !== undefined) designConfigMap[key].y = designOverrides[key].y;
                     if (designOverrides[key].mb !== undefined) designConfigMap[key].mb = designOverrides[key].mb;
                     if (designOverrides[key].r !== undefined) designConfigMap[key].r = designOverrides[key].r;
                     if (designOverrides[key].customText !== undefined) designConfigMap[key].customText = designOverrides[key].customText;
 
-                    // Terapkan Konfigurasi Animasi dari Tema
                     if (designOverrides[key].animBase !== undefined) {
                         designConfigMap[key].animBase = designOverrides[key].animBase;
                         designConfigMap[key].animDur = designOverrides[key].animDur || 1.5;
@@ -1631,10 +1366,8 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
 
             designConfigMap['selected-theme'] = selectedTheme;
            
-       // --- 5. LOGIKA LAYOUT BERDASARKAN TEMA ---
+            // --- 5. LOGIKA LAYOUT BERDASARKAN TEMA ---
             const layoutMode = theme.layoutMode || 'centered';
-            
-            // Daftar kartu yang tata letaknya akan mengikuti tema secara dinamis
             const cardsToAlign = [
                 document.getElementById('cardCover'),
                 document.getElementById('cardProfil'),
@@ -1644,57 +1377,46 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
             
             cardsToAlign.forEach(card => {
                 if (!card) return;
-                
-                // Cari sub-kontainer teks dan semua elemen garis pembatas
                 const innerFlexCols = card.querySelectorAll('.flex-col');
                 const lines = card.querySelectorAll('.target-akad-line, .target-resepsi-line, .custom-added-line');
 
                 if (layoutMode === 'editorial') {
-                    // --- TEMA RATA KIRI ---
                     card.classList.remove('text-center', 'items-center', 'text-right', 'items-end');
                     card.classList.add('text-left', 'items-start');
-                    card.style.setProperty('width', '100%', 'important'); // Lebarkan kartu
+                    card.style.setProperty('width', '100%', 'important'); 
                     
                     innerFlexCols.forEach(inner => {
                         inner.classList.remove('items-center', 'items-end');
                         inner.classList.add('items-start');
                     });
-                    
-                    // Tarik garis ke kiri
                     lines.forEach(line => {
                         line.style.setProperty('margin-left', '0', 'important');
                         line.style.setProperty('margin-right', 'auto', 'important');
                     });
                     
                 } else if (layoutMode === 'asymmetric-right') {
-                    // --- TEMA RATA KANAN (VOGUE ASYMMETRIC) ---
                     card.classList.remove('text-center', 'items-center', 'text-left', 'items-start');
                     card.classList.add('text-right', 'items-end');
-                    card.style.setProperty('width', '100%', 'important'); // Lebarkan kartu agar teks rapat ke layar
+                    card.style.setProperty('width', '100%', 'important'); 
                     
                     innerFlexCols.forEach(inner => {
                         inner.classList.remove('items-center', 'items-start');
                         inner.classList.add('items-end');
                     });
-                    
-                    // Tarik garis ke kanan
                     lines.forEach(line => {
                         line.style.setProperty('margin-left', 'auto', 'important');
                         line.style.setProperty('margin-right', '0', 'important');
                     });
                     
                 } else {
-                    // --- KEMBALIKAN KE RATA TENGAH (DEFAULT KLASIK) ---
                     card.classList.remove('text-left', 'items-start', 'text-right', 'items-end');
                     card.classList.add('text-center', 'items-center');
-                    card.style.removeProperty('width'); // Kembalikan ukuran kartu ke auto
+                    card.style.removeProperty('width'); 
                     
                     innerFlexCols.forEach(inner => {
                         inner.classList.remove('items-start', 'items-end');
                         inner.classList.add('items-center');
                     });
-                    
-                    // Posisikan garis kembali ke tengah
                     lines.forEach(line => {
                         line.style.setProperty('margin-left', 'auto', 'important');
                         line.style.setProperty('margin-right', 'auto', 'important');
@@ -1706,12 +1428,27 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
         }
 
         // ==========================================
+        // FITUR TOGGLE ON/OFF ANIMASI GLOBAL
+        // ==========================================
+        function toggleAnimState() {
+            const isChecked = document.getElementById('toggleGlobalAnim').checked;
+            if (isChecked) {
+                // Nyalakan kembali animasi
+                document.body.classList.remove('disable-animations');
+                
+                // Refresh paksa agar elemen kembali memutar animasinya dari awal
+                applyAllDesignConfig(); 
+            } else {
+                // Matikan animasi untuk mempermudah edit
+                document.body.classList.add('disable-animations');
+            }
+        }
+
+        // ==========================================
         // COUNTDOWN TIMER LOGIC
         // ==========================================
         function initCountdown() {
-            // Set for 30 days from now for preview purposes
             const targetDate = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
-            
             setInterval(() => {
                 const now = new Date().getTime();
                 const difference = targetDate - now;
@@ -1735,7 +1472,83 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
             }, 1000);
         }
 
- // ==========================================
+        // ==========================================
+        // FITUR: BUAT PROJEK BARU & BUKA PROJEK
+        // ==========================================
+        function buatProjekBaru() {
+            const konfirmasi = confirm('Anda yakin ingin membuat projek baru? Pastikan desain saat ini sudah di "Simpan ke Database" agar tidak hilang.');
+            if(konfirmasi) {
+                localStorage.removeItem('designConfigMap');
+                const newId = 'undangan-' + Date.now();
+                window.location.href = '?id=' + newId;
+            }
+        }
+
+       async function tampilkanModalProjek() {
+            const modal = document.getElementById('modalProjek');
+            const container = document.getElementById('listProjekContainer');
+            
+            modal.classList.remove('hidden');
+            container.innerHTML = '<p class="text-xs text-brand-goldMain text-center animate-pulse py-6">Memuat daftar dari Supabase...</p>';
+
+            try {
+                // GANTI supabase menjadi supabaseClient
+                const { data, error } = await supabaseClient
+                    .from('invitation_designs')
+                    .select('design_id, updated_at')
+                    .order('updated_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Belum ada projek yang pernah disimpan ke Cloud.</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                data.forEach(item => {
+                    const dateObj = new Date(item.updated_at);
+                    const dateStr = dateObj.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) + ' ' + dateObj.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+                    
+                    const isCurrent = item.design_id === CURRENT_DESIGN_ID;
+                    const borderClass = isCurrent ? 'border-brand-goldMain bg-brand-goldMain/10' : 'border-gray-700 bg-black/40 hover:border-gray-500';
+
+                    const div = document.createElement('div');
+                    div.className = `${borderClass} border rounded-lg p-3 flex justify-between items-center transition`;
+                    div.innerHTML = `
+                        <div class="overflow-hidden">
+                            <p class="text-sm font-bold text-white truncate">${item.design_id} ${isCurrent ? '<span class="text-[9px] bg-brand-goldMain text-black px-1.5 py-0.5 rounded ml-1">AKTIF</span>' : ''}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">Terakhir edit: ${dateStr}</p>
+                        </div>
+                        <button onclick="pilihProjek('${item.design_id}')" class="shrink-0 ml-2 bg-white/10 hover:bg-brand-goldMain hover:text-black border border-white/20 text-white px-3 py-1.5 rounded text-xs font-bold transition">
+                            Buka
+                        </button>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error muat projek:", error);
+                container.innerHTML = '<p class="text-xs text-red-400 text-center py-6">Gagal menghubungi server Supabase.</p>';
+            }
+        }
+
+        function tutupModalProjek() {
+            document.getElementById('modalProjek').classList.add('hidden');
+        }
+
+        function pilihProjek(idYangDipilih) {
+            if(idYangDipilih === CURRENT_DESIGN_ID) {
+                tutupModalProjek();
+                return; 
+            }
+            const konfirmasi = confirm(`Buka projek "${idYangDipilih}"? Perubahan pada projek saat ini yang belum di-save ke Cloud akan hilang.`);
+            if(konfirmasi) {
+                localStorage.removeItem('designConfigMap');
+                window.location.href = '?id=' + idYangDipilih;
+            }
+        }
+
+        // ==========================================
         // AUDIO PLAYER LOGIC
         // ==========================================
         function toggleMusic(btn) {
@@ -1764,18 +1577,15 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
             const btn = document.querySelector('#floatingMusic button');
             const icon = btn.querySelector('i');
 
-            // Simpan preferensi musik ke designConfigMap
             designConfigMap['selected-music'] = select.value;
             localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
 
             if (select.value !== "") {
                 audio.src = select.value;
-                // Coba putar musik secara langsung jika browser mengizinkan
                 audio.play().then(() => {
                     icon.classList.add('animate-spin-slow');
                     btn.style.opacity = '1';
                 }).catch(e => {
-                    // Browser biasanya memblokir autoplay jika belum ada interaksi pengguna
                     icon.classList.remove('animate-spin-slow');
                     btn.style.opacity = '0.5';
                 });
@@ -1787,15 +1597,14 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
             }
         }
        
-       // ==========================================
-        // LOGIKA URUTAN HALAMAN (REORDER SECTIONS)
+        // ==========================================
+        // LOGIKA URUTAN HALAMAN
         // ==========================================
         function renderPageOrder() {
             const listContainer = document.getElementById('pageOrderList');
             if (!listContainer) return;
             listContainer.innerHTML = '';
             
-            // Ambil urutan terbaru dari penyimpanan (atau fallback ke default)
             const currentOrder = designConfigMap['page-order'] || defaultPageOrder.map(p => p.id);
             
             currentOrder.forEach((sectionId, index) => {
@@ -1803,7 +1612,6 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
                 
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center bg-black/40 border border-blue-500/30 p-2.5 rounded-lg';
-                
                 item.innerHTML = `
                     <span class="text-xs text-blue-100 font-semibold truncate">${index + 1}. ${sectionDef.name}</span>
                     <div class="flex gap-1 shrink-0 ml-2">
@@ -1818,42 +1626,31 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
                 listContainer.appendChild(item);
             });
             
-            // Terapkan urutan ke Live Preview secara visual
             applyPageOrderToDOM();
         }
 
         function movePageOrder(index, direction) {
             let order = designConfigMap['page-order'];
-            // Cegah error jika di luar batas index
             if (index + direction < 0 || index + direction >= order.length) return;
             
-            // Tukar posisi elemen (Swap)
             let temp = order[index];
             order[index] = order[index + direction];
             order[index + direction] = temp;
             
-            // Simpan posisi terbaru
             designConfigMap['page-order'] = order;
             localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
-            
-            // Render ulang panel kontrol dan perbarui Tampilan Preview
             renderPageOrder();
         }
 
         function applyPageOrderToDOM() {
             const mainContent = document.getElementById('mainContent');
             if (!mainContent) return;
-            
             const currentOrder = designConfigMap['page-order'];
             if (!currentOrder) return;
             
-            // Menyusun ulang elemen <section> di DOM HTML sesuai urutan array
-            // Elemen yang di-appendChild pada node yang sama otomatis akan berpindah ke paling belakang (mengurutkan)
             currentOrder.forEach(sectionId => {
                 const sectionEl = document.getElementById(sectionId);
-                if (sectionEl) {
-                    mainContent.appendChild(sectionEl);
-                }
+                if (sectionEl) mainContent.appendChild(sectionEl);
             });
         }
 
@@ -1887,10 +1684,7 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
                 try {
                     const importedData = JSON.parse(e.target.result);
                     if (typeof importedData === 'object' && importedData !== null) {
-                        for(let key in defaultDesignConfig) { 
-                            if(!importedData[key]) importedData[key] = defaultDesignConfig[key]; 
-                        }
-                        designConfigMap = importedData;
+                        designConfigMap = importedData; // Langsung tiban (tanpa referensi ke defaultDesignConfig lagi)
                         localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
                         
                         document.querySelectorAll('.custom-added-line').forEach(el => el.remove());
@@ -1908,9 +1702,6 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
             reader.readAsText(file);
         }
         
-        // ==========================================
-        // LOGIKA LAYAR PENUH (FULLSCREEN PREVIEW)
-        // ==========================================
         function toggleFullscreen() {
             document.body.classList.toggle('is-fullscreen');
         }
@@ -1954,9 +1745,10 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
                 }
             }
         }
+
         function initCustomElements() {
             for (let key in designConfigMap) {
-                if (key.startsWith('custom-line-')) {
+                if (key.startsWith('custom-line-') && !designConfigMap[key].deleted) {
                     const el = document.createElement('div');
                     el.className = `target-${key} custom-added-line`;
                     el.setAttribute('data-target', key);
@@ -1995,18 +1787,19 @@ document.querySelectorAll('.text-gray-300, .text-gray-400').forEach(el => el.sty
             applyAllDesignConfig();
         }
 
-function createFallingLeaves() {
+        function createFallingLeaves() {
             const container = document.getElementById('leaf-container');
             setInterval(() => {
                 const currentThemeKey = designConfigMap['selected-theme'] || 'midnight-gold';
-                const currentTheme = themePresets[currentThemeKey] || themePresets['midnight-gold'];
+                const currentTheme = dynamicThemePresets[currentThemeKey];
+                if(!currentTheme) return;
 
                 const leaf = document.createElement('div');
                 leaf.classList.add('leaf');
                 leaf.style.left = (Math.random() * 100) + '%';
                 leaf.style.width = (Math.random() * 8 + 10) + 'px';
                 leaf.style.height = leaf.style.width;
-                leaf.style.background = currentTheme.colors.leafGrad; // <- ini berubah
+                leaf.style.background = currentTheme.colors.leafGrad;
                 leaf.style.animation = `fall ${Math.random() * 5 + 7}s linear forwards, sway ${Math.random() * 3 + 2}s ease-in-out infinite alternate`;
                 container.appendChild(leaf);
                 setTimeout(() => leaf.remove(), 12000);
@@ -2028,7 +1821,8 @@ function createFallingLeaves() {
 
         function resetAxis(axis) {
             const target = document.getElementById('editTargetSelect').value;
-            if (!designConfigMap[target]) designConfigMap[target] = {};
+            if (!designConfigMap[target]) designConfigMap[target] = { font: 'inherit', size: 1, x: 0, y: 0, r: 0, mb: 0 };
+            
             if (axis === 'x') { designConfigMap[target].x = 0; document.getElementById('editPosX').value = 0; } 
             else if (axis === 'y') { designConfigMap[target].y = 0; document.getElementById('editPosY').value = 0; } 
             else if (axis === 'w') { designConfigMap[target].w = 0; if (document.getElementById('editW')) document.getElementById('editW').value = 0; } 
@@ -2042,7 +1836,7 @@ function createFallingLeaves() {
             updateCoordLabels(designConfigMap[target].x || 0, designConfigMap[target].y || 0, designConfigMap[target].w || 0, designConfigMap[target].h || 0, designConfigMap[target].r || 0);
         }
 
- function openInvitation() {
+        function openInvitation() {
             document.getElementById('coverPage').classList.add('hide-cover');
             const main = document.getElementById('mainContent');
             const floatingMusic = document.getElementById('floatingMusic');
@@ -2050,10 +1844,8 @@ function createFallingLeaves() {
             main.classList.remove('hidden');
             main.classList.add('fade-in');
             
-            // Tampilkan tombol musik dan coba putar lagunya
             setTimeout(() => {
                 floatingMusic.classList.remove('hidden');
-                
                 const audio = document.getElementById('bgMusic');
                 const btn = floatingMusic.querySelector('button');
                 const icon = btn.querySelector('i');
@@ -2102,20 +1894,18 @@ function createFallingLeaves() {
             changeEditTarget();
         }
 
-async function muatData() {
+        async function muatData() {
             document.getElementById('loadingScreen').classList.add('fade-out');
             setTimeout(() => { document.getElementById('loadingScreen').style.display='none'; }, 800);
             refreshObserver();
             applyHighlight(); 
             loadPreviewStyles();
 
-            // Kembalikan pilihan musik jika sebelumnya telah disimpan
             if (designConfigMap['selected-music']) {
                 document.getElementById('editMusic').value = designConfigMap['selected-music'];
                 document.getElementById('bgMusic').src = designConfigMap['selected-music'];
             }
 
-            // Panggil warna tema HANYA tanpa menimpa setelan letak/font (parameter false)
             if (designConfigMap['selected-theme']) {
                 changeTheme(designConfigMap['selected-theme'], false);
             } else {
@@ -2137,9 +1927,12 @@ async function muatData() {
                                 if (config && config.anim && config.anim !== 'none') {
                                     el.style.animation = 'none'; 
                                     void el.offsetWidth; 
-                                    el.style.setProperty('animation', config.anim, 'important');
-                                    el.style.setProperty('animation-delay', (config.animDelay || 0) + 's', 'important');
-                                    el.style.setProperty('animation-fill-mode', 'both', 'important');
+                                    // Cek apakah toggle animasi dimatikan
+                                    if (!document.body.classList.contains('disable-animations')) {
+                                        el.style.setProperty('animation', config.anim, 'important');
+                                        el.style.setProperty('animation-delay', (config.animDelay || 0) + 's', 'important');
+                                        el.style.setProperty('animation-fill-mode', 'both', 'important');
+                                    }
                                 }
                             });
                         }
@@ -2184,21 +1977,11 @@ async function muatData() {
             if(document.getElementById('editW')) document.getElementById('editW').value = config.w || 0;
             if(document.getElementById('editH')) document.getElementById('editH').value = config.h || 0;
             if(document.getElementById('editRotate')) document.getElementById('editRotate').value = config.r || 0;
-            if(document.getElementById('editAnimation')) {
-                document.getElementById('editAnimation').value = config.animBase || 'none';
-            }
-            if(document.getElementById('editAnimDuration')) {
-                document.getElementById('editAnimDuration').value = config.animDur || 1.5;
-            }
-            if(document.getElementById('valAnimDur')) {
-                document.getElementById('valAnimDur').innerText = (config.animDur || 1.5) + 's';
-            }
-            if(document.getElementById('editAnimDelay')) {
-                document.getElementById('editAnimDelay').value = config.animDelay || 0;
-            }
-            if(document.getElementById('valAnimDelay')) {
-                document.getElementById('valAnimDelay').innerText = (config.animDelay || 0) + 's';
-            }
+            if(document.getElementById('editAnimation')) document.getElementById('editAnimation').value = config.animBase || 'none';
+            if(document.getElementById('editAnimDuration')) document.getElementById('editAnimDuration').value = config.animDur || 1.5;
+            if(document.getElementById('valAnimDur')) document.getElementById('valAnimDur').innerText = (config.animDur || 1.5) + 's';
+            if(document.getElementById('editAnimDelay')) document.getElementById('editAnimDelay').value = config.animDelay || 0;
+            if(document.getElementById('valAnimDelay')) document.getElementById('valAnimDelay').innerText = (config.animDelay || 0) + 's';
 
             const lineStyleContainer = document.getElementById('lineStyleContainer');
             if (target.includes('line')) {
@@ -2215,12 +1998,12 @@ async function muatData() {
             let targetSectionId = null; let showCover = false;
 
             if (target.startsWith('cover-')) showCover = true;
-            else if (target.startsWith('ayat-') || target === 'ayat-card') targetSectionId = 'sectionAyat'; // Rute baru
+            else if (target.startsWith('ayat-') || target === 'ayat-card') targetSectionId = 'sectionAyat'; 
             else if (target.startsWith('profile-') || target === 'profil-card') targetSectionId = 'sectionProfil';
             else if (target.startsWith('countdown-') || target === 'countdown-card') targetSectionId = 'sectionCountdown';
             else if (target.startsWith('event-') || target.startsWith('akad-') || target === 'akad-card') targetSectionId = 'sectionAkad'; 
             else if (target.startsWith('resepsi-') || target === 'resepsi-card') targetSectionId = 'sectionResepsi'; 
-            else if (target.startsWith('doa-') || target === 'doa-card') targetSectionId = 'sectionDoa'; // Rute baru
+            else if (target.startsWith('doa-') || target === 'doa-card') targetSectionId = 'sectionDoa'; 
             else if (target.startsWith('gallery-') || target === 'gallery-card') targetSectionId = 'sectionGallery';
             else if (target.startsWith('gift-') || target === 'gift-card') targetSectionId = 'sectionGift';
             else if (target.startsWith('rsvp-') || target === 'rsvp-card') targetSectionId = 'sectionRsvp';
@@ -2289,99 +2072,104 @@ async function muatData() {
             applyAllDesignConfig();
         }
   
-  function applyAllDesignConfig() {
-    const preview = document.getElementById('preview-window');
-    for (let target in designConfigMap) {
-        const config = designConfigMap[target];
-        if(config.w === undefined) config.w = 0;
-        if(config.h === undefined) config.h = 0;
-        if(config.r === undefined) config.r = 0;
+        function applyAllDesignConfig() {
+            const preview = document.getElementById('preview-window');
+            for (let target in designConfigMap) {
+                const config = designConfigMap[target];
+                if(config.w === undefined) config.w = 0;
+                if(config.h === undefined) config.h = 0;
+                if(config.r === undefined) config.r = 0;
 
-        preview.style.setProperty(`--f-${target}`, config.font || "inherit");
-        preview.style.setProperty(`--s-${target}`, config.size || 1);
-        preview.style.setProperty(`--x-${target}`, (config.x || 0) + 'px');
-        preview.style.setProperty(`--y-${target}`, (config.y || 0) + 'px');
-        preview.style.setProperty(`--mb-${target}`, (config.mb || 0) + 'px');
-        preview.style.setProperty(`--r-${target}`, (config.r || 0) + 'deg');
+                preview.style.setProperty(`--f-${target}`, config.font || "inherit");
+                preview.style.setProperty(`--s-${target}`, config.size || 1);
+                preview.style.setProperty(`--x-${target}`, (config.x || 0) + 'px');
+                preview.style.setProperty(`--y-${target}`, (config.y || 0) + 'px');
+                preview.style.setProperty(`--mb-${target}`, (config.mb || 0) + 'px');
+                preview.style.setProperty(`--r-${target}`, (config.r || 0) + 'deg');
 
-        document.querySelectorAll(`.target-${target}`).forEach(el => {
-            el.style.setProperty('--curr-x', (config.x || 0) + 'px');
-            el.style.setProperty('--curr-y', (config.y || 0) + 'px');
-            el.style.setProperty('--curr-r', (config.r || 0) + 'deg');
+                document.querySelectorAll(`.target-${target}`).forEach(el => {
+                    el.style.setProperty('--curr-x', (config.x || 0) + 'px');
+                    el.style.setProperty('--curr-y', (config.y || 0) + 'px');
+                    el.style.setProperty('--curr-r', (config.r || 0) + 'deg');
 
-            if(!el.classList.contains('word-reveal') && !el.classList.contains('reveal-item') && !el.classList.contains('cover-word')) {
-                el.style.removeProperty('top');
-                el.style.removeProperty('left');
-                el.style.removeProperty('transform');
+                    if(!el.classList.contains('word-reveal') && !el.classList.contains('reveal-item') && !el.classList.contains('cover-word')) {
+                        el.style.removeProperty('top');
+                        el.style.removeProperty('left');
+                        el.style.removeProperty('transform');
+                    }
+                    
+                    if(el.classList.contains('custom-added-line')) {
+                        el.style.transform = `translate(${(config.x || 0)}px, ${(config.y || 0)}px) rotate(${(config.r || 0)}deg)`;
+                        el.style.setProperty('margin-bottom', `calc(1rem + ${(config.mb || 0)}px)`, 'important');
+                    }
+
+                    if (config.deleted) {
+                        el.style.setProperty('display', 'none', 'important');
+                        return;
+                    } else {
+                        if(!el.classList.contains('custom-added-line')) el.style.removeProperty('display');
+                        else el.style.setProperty('display', 'block', 'important');
+                    }
+
+                    el.style.animation = 'none';  
+                    void el.offsetWidth;          
+
+                    if (config.anim && config.anim !== 'none') {
+                        // Cek apakah toggle animasi dimatikan
+                        if (!document.body.classList.contains('disable-animations')) {
+                            el.style.setProperty('animation', config.anim, 'important');
+                            el.style.setProperty('animation-delay', (config.animDelay || 0) + 's', 'important');
+                            el.style.setProperty('animation-fill-mode', 'both', 'important');
+                        } else {
+                            // Paksa 'none' secara inline jika toggle mati
+                            el.style.setProperty('animation', 'none', 'important');
+                        }
+                    } else {
+                        el.style.removeProperty('animation');
+                        el.style.removeProperty('animation-delay');
+                        el.style.removeProperty('animation-fill-mode');
+                    }
+
+                    if (config.w) {
+                        el.style.setProperty('width', `calc(100% + ${config.w}px)`, 'important');
+                        el.style.setProperty('max-width', 'none', 'important');
+                    } else {
+                        if(!el.classList.contains('custom-added-line')) {
+                            el.style.removeProperty('width');
+                            el.style.removeProperty('max-width');
+                        }
+                    }
+
+                    if (config.h) {
+                        if (el.classList.contains('glass-card')) {
+                            el.style.paddingTop = `calc(1.5rem + ${config.h / 2}px)`;
+                            el.style.paddingBottom = `calc(1.5rem + ${config.h / 2}px)`;
+                        } else {
+                            el.style.paddingTop = `calc(${config.h / 2}px)`;
+                            el.style.paddingBottom = `calc(${config.h / 2}px)`;
+                        }
+                    } else {
+                        el.style.paddingTop = '';
+                        el.style.paddingBottom = '';
+                    }
+                    
+                    if (config.lineType && target.includes('line')) {
+                        el.setAttribute('data-line-style', config.lineType);
+                    }
+
+                    if (config.customText !== undefined && config.customText !== null) {
+                         if (target !== 'countdown-timer' && target !== 'gallery-grid') {
+                             el.innerHTML = config.customText;
+                         }
+                    }
+                });
             }
-            
-            if(el.classList.contains('custom-added-line')) {
-                el.style.transform = `translate(${(config.x || 0)}px, ${(config.y || 0)}px) rotate(${(config.r || 0)}deg)`;
-                el.style.setProperty('margin-bottom', `calc(1rem + ${(config.mb || 0)}px)`, 'important');
-            }
+        }
 
-            if (config.deleted) {
-                el.style.setProperty('display', 'none', 'important');
-                return;
-            } else {
-                if(!el.classList.contains('custom-added-line')) el.style.removeProperty('display');
-                else el.style.setProperty('display', 'block', 'important');
-            }
-
-            // --- TAMBAHKAN DUA BARIS INI (FORCE REFLOW) ---
-            el.style.animation = 'none';  // 1. Hapus animasi yang nyangkut
-            void el.offsetWidth;          // 2. Paksa browser memproses ulang elemen
-
-            if (config.anim && config.anim !== 'none') {
-                el.style.setProperty('animation', config.anim, 'important');
-                el.style.setProperty('animation-delay', (config.animDelay || 0) + 's', 'important');
-                el.style.setProperty('animation-fill-mode', 'both', 'important');
-            } else {
-                el.style.removeProperty('animation');
-                el.style.removeProperty('animation-delay');
-                el.style.removeProperty('animation-fill-mode');
-            }
-            // ----------------------------------------------
-
-            if (config.w) {
-                el.style.setProperty('width', `calc(100% + ${config.w}px)`, 'important');
-                el.style.setProperty('max-width', 'none', 'important');
-            } else {
-                if(!el.classList.contains('custom-added-line')) {
-                    el.style.removeProperty('width');
-                    el.style.removeProperty('max-width');
-                }
-            }
-
-            if (config.h) {
-                if (el.classList.contains('glass-card')) {
-                    el.style.paddingTop = `calc(1.5rem + ${config.h / 2}px)`;
-                    el.style.paddingBottom = `calc(1.5rem + ${config.h / 2}px)`;
-                } else {
-                    el.style.paddingTop = `calc(${config.h / 2}px)`;
-                    el.style.paddingBottom = `calc(${config.h / 2}px)`;
-                }
-            } else {
-                el.style.paddingTop = '';
-                el.style.paddingBottom = '';
-            }
-            
-            if (config.lineType && target.includes('line')) {
-                el.setAttribute('data-line-style', config.lineType);
-            }
-
-            if (config.customText !== undefined && config.customText !== null) {
-                 if (target !== 'countdown-timer' && target !== 'gallery-grid') {
-                     el.innerHTML = config.customText;
-                 }
-            }
-        });
-    }
-}
-    function loadPreviewStyles() {
+        function loadPreviewStyles() {
             changeEditTarget();
             applyAllDesignConfig(); 
-            renderPageOrder(); // <- PANGGIL FUNGSI INI DI SINI
+            renderPageOrder(); 
         }
 
         let isDragging = false;
@@ -2414,7 +2202,6 @@ async function muatData() {
                 const lastTarget = selectedTargets[selectedTargets.length - 1];
                 document.getElementById('editTargetSelect').value = lastTarget;
                 
-                // Safely ensure config exists before reading properties
                 if (!designConfigMap[lastTarget]) {
                     designConfigMap[lastTarget] = { font: 'inherit', size: 1, x: 0, y: 0, r: 0, mb: 0 };
                 }
@@ -2446,7 +2233,7 @@ async function muatData() {
             initialPositions = {};
             selectedTargets.forEach(t => {
                 if (!designConfigMap[t]) {
-                    designConfigMap[t] = { x: 0, y: 0 };
+                    designConfigMap[t] = { x: 0, y: 0, r: 0, mb: 0 };
                 }
                 initialPositions[t] = { x: designConfigMap[t].x || 0, y: designConfigMap[t].y || 0 };
             });
@@ -2541,7 +2328,6 @@ async function muatData() {
 
         previewWindow.addEventListener('dblclick', function(e) {
             const targetEl = e.target.closest('[data-target]');
-            // Disable inline editing for complex structural containers
             if (!targetEl || targetEl.getAttribute('data-target') === 'countdown-timer' || targetEl.getAttribute('data-target') === 'gallery-grid') return;
             e.stopPropagation(); 
             
@@ -2581,13 +2367,6 @@ async function muatData() {
 
             localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
             applyAllDesignConfig();
-        }
-
-        window.onload = function() {
-            createFallingLeaves();
-            initCustomElements();
-            initCountdown();
-            muatData();
         }
     </script>
 </body>
