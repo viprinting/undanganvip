@@ -44,6 +44,45 @@
     <style>
 
         /* Mode Customer / Tampilan Langsung */
+
+        /* Menghilangkan border putus-putus dan efek interaktif editor saat mode customer */
+body.customer-view [data-target] {
+    cursor: default !important;
+    outline: none !important;
+    pointer-events: none !important; /* Membuat komponen tidak bisa diklik/dipilih sama sekali */
+}
+
+/* Khusus untuk elemen interaktif seperti tombol/form agar tetap bisa ditekan oleh tamu undangan */
+body.customer-view button,
+body.customer-view button[data-target],
+body.customer-view input,
+body.customer-view input[data-target],
+body.customer-view select,
+body.customer-view select[data-target],
+body.customer-view textarea,
+body.customer-view textarea[data-target],
+body.customer-view a,
+body.customer-view a[data-target] {
+    pointer-events: auto !important;
+}
+
+/* Mencegah teks diseleksi dan menghilangkan efek highlight sentuhan di mode customer */
+body.customer-view {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important; /* Mencegah popup menu di iOS saat ditahan */
+    -webkit-tap-highlight-color: transparent !important; /* Menghilangkan kedip biru saat disentuh di HP */
+}
+
+/* Opsional: Mencegah gambar ditahan untuk di-save/drag oleh pengunjung */
+body.customer-view img, 
+body.customer-view svg {
+    pointer-events: none !important;
+    -webkit-user-drag: none !important;
+}
+
 body.customer-view #editorPanel,
 body.customer-view #codePanel,
 body.customer-view #mobileNav,
@@ -72,12 +111,20 @@ body.customer-view #previewPanel {
 body.customer-view #mockupContainer {
     height: 100vh !important;
     max-height: 100vh !important;
-    width: auto !important;
-    aspect-ratio: 9 / 19.5 !important;
-    margin: 0 auto !important;
+    width: 100vw !important; /* Diubah: Mengisi lebar layar sepenuhnya */
+    aspect-ratio: auto !important; /* Diubah: Membebaskan rasio agar menyesuaikan HP */
+    margin: 0 !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+}
+
+/* Tambahkan blok baru ini tepat di bawahnya */
+body.customer-view #preview-window {
+    width: 100% !important;
+    height: 100% !important;
+    aspect-ratio: auto !important;
+    transform: none !important; /* Menghapus paksaan skala (zoom) dari JavaScript */
 }
 
 /* Sembunyikan poni HP (notch) di mode customer */
@@ -87,7 +134,7 @@ body.customer-view #mockupContainer::before {
 
 /* Mengunci rasio konten ke ukuran mockup HP (9:19.5) */
        #mockupContainer {
-    aspect-ratio: 9 / 19.5 !important;
+    aspect-ratio: 10 / 19.5 !important;
     height: 100%;
     max-height: 95vh; 
     width: auto !important;
@@ -97,7 +144,7 @@ body.customer-view #mockupContainer::before {
         
         /* Memastikan jendela preview konten di dalamnya mengikuti rasio induknya */
         #preview-window {
-            aspect-ratio: 9 / 19.5 !important;
+            aspect-ratio: 10 / 19.5 !important;
             width: 100%;
             height: 100%;
         }
@@ -110,7 +157,7 @@ body.customer-view #mockupContainer::before {
                 border-radius: calc(2.5rem * var(--mockup-scale, 1));
                 box-shadow: 0 0 0 calc(2px * var(--mockup-scale, 1)) #3f3f46, 0 calc(25px * var(--mockup-scale, 1)) calc(50px * var(--mockup-scale, 1)) calc(-12px * var(--mockup-scale, 1)) rgba(0, 0, 0, 0.5);
                 height: 95vh !important; /* Atau 85vh sesuai pilihan Anda sebelumnya */
-                aspect-ratio: 9 / 19.5 !important;
+                aspect-ratio: 10 / 19.5 !important;
                 width: auto !important;
                 max-width: none !important;
             }
@@ -202,7 +249,7 @@ body.customer-view #mockupContainer::before {
             height: 100vh !important; 
             max-height: 100vh !important;
             width: auto !important; 
-            aspect-ratio: 9 / 19.5 !important; 
+            aspect-ratio: 10 / 19.5 !important; 
             margin: 0 auto !important; /* Memposisikan kotak tepat di tengah layar */
             border: none !important; 
             border-radius: 0 !important; 
@@ -485,8 +532,8 @@ body.customer-view #mockupContainer::before {
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <!-- Teks Default Loader -->
-        <span id="global-loading-text" class="text-brand-goldMain font-serif text-xl tracking-wider text-center px-4">Memuat Editor...</span>
+       <!-- Ubah pada bagian GLOBAL PRELOADER -->
+<span id="global-loading-text" class="text-brand-goldMain font-serif text-xl tracking-wider text-center px-4">Menampilkan undangan...</span>
     </div>
 
    <!-- NAVIGASI BAWAH KHUSUS HP -->
@@ -548,7 +595,7 @@ body.customer-view #mockupContainer::before {
                 <!-- Loading Screen Preview -->
                 <div class="absolute inset-0 bg-transparent flex flex-col justify-center items-center z-[100] text-brand-goldMain font-serif text-lg" id="loadingScreen">
                     <svg class="animate-spin h-6 w-6 mb-3 text-brand-goldMain" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span id="loadingText">Menyiapkan Preview...</span>
+                    <span id="loadingText">Menampilkan undangan...</span>
                 </div>
 
                 <!-- Cover Page Preview -->
@@ -1615,51 +1662,66 @@ let VIEW_MODE = urlParams.get('mode'); // Tambahkan baris ini
         let dynamicThemePresets = {};
 
 function checkViewMode() {
-    // Jika tidak ada tulisan &mode=edit di URL, masuk ke mode Customer
+    const globalText = document.getElementById('global-loading-text');
+    const loadingText = document.getElementById('loadingText');
+    const globalSpinner = document.getElementById('global-spinner');
+    
+    // TAMBAHKAN BARIS INI: Ambil elemen loading di dalam mockup HP
+    const innerLoadingScreen = document.getElementById('loadingScreen');
+
+    // Jika masuk sebagai Tamu Undangan (Customer)
     if (VIEW_MODE !== 'edit') {
         document.body.classList.add('customer-view');
         
-        // --- LOGIKA GLOBAL LOADER UNTUK KUSTOMER ---
         const globalLoader = document.getElementById('global-loader');
-        const globalText = document.getElementById('global-loading-text');
-        const globalSpinner = document.getElementById('global-spinner');
-
         if (globalLoader) {
-            // Ubah background menjadi benar-benar hitam kosong untuk kustomer
             globalLoader.classList.replace('bg-[#0f0f11]', 'bg-black');
         }
-        if (globalText) {
-            // Sesuai permintaan: Ubah teksnya
-            globalText.innerText = "Menampilkan Undangan";
-            globalText.classList.add('animate-pulse'); // Tambahkan efek kedip halus
+        
+        // TAMBAHKAN BARIS INI: Matikan total loading kedua agar tidak muncul di akhir
+        if (innerLoadingScreen) {
+            innerLoadingScreen.style.display = 'none';
         }
+        
+        if (globalText) {
+            globalText.classList.add('animate-pulse'); 
+        }
+        
         if (globalSpinner) {
-            // Sesuai permintaan: HANYA tampil teks, jadi spinner disembunyikan
             globalSpinner.style.display = 'none'; 
         }
-        // ------------------------------------------
         
-        // --- TAMBAHAN LAMA: Ubah teks loading bawaan di dalam HP ---
-        const loadingText = document.getElementById('loadingText');
-        if (loadingText) loadingText.innerText = "Menampilkan Undangan...";
-        
-        // Hapus background grid stardust dari preview
         const previewPanel = document.getElementById('previewPanel');
         if (previewPanel) {
             previewPanel.style.backgroundImage = 'none';
         }
 
-        // Matikan interaksi klik ganda (edit teks) untuk tamu
         const previewWindow = document.getElementById('preview-window');
         if (previewWindow) {
-            previewWindow.style.pointerEvents = 'auto'; // Pastikan bisa scroll
+            previewWindow.style.pointerEvents = 'auto'; 
             document.querySelectorAll('[data-target]').forEach(el => {
                 el.classList.remove('is-editing');
                 el.removeAttribute('contenteditable');
             });
         }
+    } else {
+        // Jika masuk sebagai Admin (Mode Edit)
+        if (globalText) {
+            globalText.innerText = "Memuat Editor...";
+            globalText.classList.remove('animate-pulse');
+        }
+        if (loadingText) {
+            loadingText.innerText = "Menyiapkan Preview...";
+        }
+        // Pastikan loading kedua tetap aktif untuk mode edit
+        if (innerLoadingScreen) {
+            innerLoadingScreen.style.display = 'flex';
+        }
     }
 }
+
+// Pastikan pemanggilan fungsi tetap ada di sini
+checkViewMode();
 
     async function fetchMasterData() {
     try {
@@ -1812,7 +1874,7 @@ if (bgs) {
         }
 
 window.onload = async function() {
-    checkViewMode(); // Panggil pengecekan mode di awal
+   // checkViewMode(); // Panggil pengecekan mode di awal
     
     createFallingLeaves();
     initCountdown();
@@ -1928,6 +1990,9 @@ async function simpanSebagaiTema() {
         // FITUR: KUNCI SKALA KONTEN (ANTI REFLOW SAAT ZOOM/RESIZE)
         // ==========================================
         function initMockupScaler() {
+            // TAMBAHKAN BARIS INI: Hentikan penguncian rasio 390px jika ini mode pengunjung
+            if (VIEW_MODE !== 'edit') return;
+
             const mockup = document.getElementById('mockupContainer');
             const preview = document.getElementById('preview-window');
             
@@ -3178,23 +3243,25 @@ const currentOptGroup = currentOption ? currentOption.parentElement : null;
         }
 
     async function muatData() {
-        // (Kode bawaan) Sembunyikan loading screen di dalam mockup
-        document.getElementById('loadingScreen').classList.add('fade-out');
-        setTimeout(() => { document.getElementById('loadingScreen').style.display='none'; }, 800);
-        
-        // --- TAMBAHAN BARU: Hilangkan Global Loader penutup layar ---
-        const globalLoader = document.getElementById('global-loader');
-        if(globalLoader) {
-            globalLoader.style.opacity = '0'; // Animasi fade out
-            setTimeout(() => { globalLoader.remove(); }, 500); // Hapus dari sistem HTML
-        }
-        // -----------------------------------------------------------
+    // 1. Sembunyikan inner loading screen secara instan (hapus class fade-out dan delay 800ms)
+    // karena elemen ini sudah tertutup sempurna oleh global-loader
+    const innerLoader = document.getElementById('loadingScreen');
+    if (innerLoader) {
+        innerLoader.style.display = 'none';
+    }
+    
+    // 2. Mulai pudarkan global-loader seperti biasa
+    const globalLoader = document.getElementById('global-loader');
+    if(globalLoader) {
+        globalLoader.style.opacity = '0'; // Animasi fade out
+        setTimeout(() => { globalLoader.remove(); }, 500); // Hapus dari sistem HTML
+    }
 
-        refreshObserver();
-        applyHighlight(); 
+    refreshObserver();
+    applyHighlight(); 
 
-        // 1. Load elemen tema terlebih dahulu
-        if (designConfigMap['selected-music']) {
+    // 1. Load elemen tema terlebih dahulu
+    if (designConfigMap['selected-music']) {
             document.getElementById('editMusic').value = designConfigMap['selected-music'];
             document.getElementById('bgMusic').src = designConfigMap['selected-music'];
         }
@@ -3863,7 +3930,10 @@ if (!target.includes('line') && !el.classList.contains('custom-added-line')) {
         let snapGuidesY = [];
         let dragStartRects = {};
 
-       function startDrag(e) {
+      function startDrag(e) {
+            // TAMBAHKAN BARIS INI: Blokir fungsi klik & geser jika bukan mode edit
+            if (VIEW_MODE !== 'edit') return;
+
             if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('textarea') || e.target.closest('[contenteditable="true"]')) return;
             const targetEl = e.target.closest('[data-target]');
             if (!targetEl) return;
@@ -4066,8 +4136,12 @@ function drag(e) {
             if ((e.key === 'Delete' || e.key === 'Backspace') && selectedTargets.length > 0) { e.preventDefault(); uiDeleteSelected(); return; }
 
             if (e.shiftKey && selectedTargets.length > 0) {
+                // TAMBAHKAN BARIS INI: Blokir pergeseran keyboard jika bukan mode edit
+                if (VIEW_MODE !== 'edit') return;
+
                 let nudged = false;
                 const step = 1;
+              
                 let deltaX = 0; let deltaY = 0;
                 switch(e.key) {
                     case 'ArrowUp': deltaY = -step; nudged = true; break;
@@ -4108,10 +4182,13 @@ function drag(e) {
         // ==========================================
         let currentEditingElement = null;
 
-        previewWindow.addEventListener('dblclick', function(e) {
+       previewWindow.addEventListener('dblclick', function(e) {
+            // TAMBAHKAN BARIS INI: Blokir edit teks jika bukan mode edit
+            if (VIEW_MODE !== 'edit') return;
+            
             const targetEl = e.target.closest('[data-target]');
             if (!targetEl || targetEl.getAttribute('data-target') === 'countdown-timer' || targetEl.getAttribute('data-target') === 'gallery-grid') return;
-            e.stopPropagation(); 
+            e.stopPropagation();
             
             targetEl.setAttribute('contenteditable', 'true');
             targetEl.focus();
