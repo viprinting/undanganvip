@@ -479,7 +479,7 @@ body.customer-view #mockupContainer::before {
     width: 340px !important;
     height: 480px !important;
     position: absolute !important;
-    top: 50% !important;
+    top: 46% !important; /* Diubah dari 50% untuk menaikkan sedikit titik tengahnya */
     left: 50% !important;
     /* Memadukan titik tengah absolut dengan pergeseran X & Y dari editor */
     transform: translate(calc(-50% + var(--curr-x, 0px)), calc(-50% + var(--curr-y, 0px))) rotate(var(--curr-r, 0deg)) !important;
@@ -618,7 +618,7 @@ body.customer-view #mockupContainer::before {
                 <!-- Main Scrollable Content -->
                 <div id="mainContent" class="hidden flex w-full h-full overflow-x-auto overflow-y-auto snap-x snap-mandatory no-scrollbar relative z-10">     
                     <!-- Sec 0.5: Ayat Suci -->
-                    <section id="sectionAyat" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <section id="sectionAyat" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div class="w-full mb-3 flex justify-center">
                                 <div id="cardAyat" class="glass-card target-ayat-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center w-full" data-target="ayat-card">
@@ -639,7 +639,7 @@ body.customer-view #mockupContainer::before {
                     </section>
 
                     <!-- Sec 1: Pembuka -->
-                   <section id="sectionProfil" class="snap-start shrink-0 w-full h-full overflow-y-auto relative p-5">
+                   <section id="sectionProfil" class="snap-start snap-always shrink-0 w-full h-full overflow-y-auto relative p-5">
     <div class="min-h-full flex flex-col justify-center items-center py-8">
         <div id="cardProfil" class="glass-card target-profil-card rounded-2xl p-6 shadow-xl w-full text-center flex flex-col items-center" data-target="profil-card">
             <!-- Teks pembuka dikosongkan untuk diisi dari Supabase -->
@@ -683,7 +683,7 @@ body.customer-view #mockupContainer::before {
 </section>
 
                     <!-- Sec 1.5: Countdown (NEW) -->
-                    <section id="sectionCountdown" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <section id="sectionCountdown" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div class="w-full mb-3 flex justify-center">
                                 <div id="cardCountdown" class="glass-card target-countdown-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center" data-target="countdown-card">
@@ -707,7 +707,7 @@ body.customer-view #mockupContainer::before {
                     </section>
 
                    <!-- Sec 2: Akad -->
-<section id="sectionAkad" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+<section id="sectionAkad" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
     <div class="min-h-full flex flex-col justify-center items-center py-8">
         <div class="w-full mb-3 flex justify-center">
             <div id="cardAkad" class="glass-card target-akad-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center" data-target="akad-card">
@@ -739,7 +739,7 @@ body.customer-view #mockupContainer::before {
                     </section>
 
                     <!-- Sec 3: Resepsi -->
-                    <section id="sectionResepsi" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <section id="sectionResepsi" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div class="w-full mb-6 flex justify-center">
                                 <div id="cardResepsi" class="glass-card target-resepsi-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center" data-target="resepsi-card">
@@ -769,7 +769,7 @@ body.customer-view #mockupContainer::before {
                     </section>
 
                     <!-- Sec 3.1: Galeri (NEW) -->
-                    <section id="sectionGallery" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <section id="sectionGallery" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div class="w-full mb-3 flex justify-center">
                                 <div id="cardGallery" class="glass-card target-gallery-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center w-full" data-target="gallery-card">
@@ -789,7 +789,7 @@ body.customer-view #mockupContainer::before {
                     </section>
 
                     <!-- Sec 3.05: Doa Pengantin -->
-                    <section id="sectionDoa" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <section id="sectionDoa" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div class="w-full mb-3 flex justify-center">
                                 <div id="cardDoa" class="glass-card target-doa-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center w-full" data-target="doa-card">
@@ -810,7 +810,7 @@ body.customer-view #mockupContainer::before {
                     </section>
 
                     <!-- Sec 3.2: Amplop Digital (NEW) -->
-                    <section id="sectionGift" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <section id="sectionGift" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div class="w-full mb-3 flex justify-center">
                                 <div id="cardGift" class="glass-card target-gift-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center w-full" data-target="gift-card">
@@ -836,7 +836,7 @@ body.customer-view #mockupContainer::before {
                     </section>
 
                    <!-- Sec 3.3: RSVP (NEW) -->
-<section id="sectionRsvp" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+<section id="sectionRsvp" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
     <div class="min-h-full flex flex-col justify-center items-center py-8">
         <div class="w-full mb-3 flex justify-center">
             <div id="cardRsvp" class="glass-card target-rsvp-card rounded-3xl p-6 relative overflow-hidden text-center reveal-item flex flex-col items-center w-full" data-target="rsvp-card">
@@ -872,7 +872,7 @@ body.customer-view #mockupContainer::before {
 </section>
 
                     <!-- Sec 4: Penutup -->
-                    <section id="sectionPenutup" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <section id="sectionPenutup" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div id="cardPenutup" class="glass-card target-penutup-card rounded-2xl p-6 text-center w-full reveal-item flex flex-col items-center" data-target="penutup-card">
                                 <div id="prevTeksPenutup" class="target-closing-teks" data-target="closing-teks">
@@ -889,7 +889,7 @@ body.customer-view #mockupContainer::before {
                     </section>
 
                     <!-- Sec 5: Turut Mengundang -->
-                    <section id="sectionTurutMengundang" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+                    <section id="sectionTurutMengundang" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
                         <div class="min-h-full flex flex-col justify-center items-center py-8">
                             <div id="cardTurut" class="glass-card target-turut-card rounded-2xl p-8 relative w-full text-center reveal-item flex flex-col items-center" data-target="turut-card">
                                 
@@ -917,7 +917,7 @@ body.customer-view #mockupContainer::before {
                     </section>
 
                   <!-- Sec 6: Percetakan (Credit) -->
-<section id="sectionCredit" class="snap-start shrink-0 w-full h-full overflow-hidden relative p-5">
+<section id="sectionCredit" class="snap-start snap-always shrink-0 w-full h-full overflow-hidden relative p-5">
     <div class="min-h-full flex flex-col justify-center items-center py-8">
         <div id="cardCredit" class="glass-card target-credit-card rounded-3xl p-8 relative w-full text-center flex flex-col items-center justify-center border-brand-goldMain/20 reveal-item" data-target="credit-card">
             
