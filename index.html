@@ -1802,11 +1802,21 @@ if (bgs) {
             }
         }
  
-    async function initDesignData() {
+ async function initDesignData() {
             let localData = localStorage.getItem('designConfigMap');
+            let savedDesignId = localStorage.getItem('savedDesignId'); // Tambahan: Ambil ID yang terakhir tersimpan
+
+            // Cek apakah mode customer dan apakah ID URL beda dengan ID di Local Storage
+            let isCustomer = VIEW_MODE !== 'edit';
+            let isIdDifferent = savedDesignId !== CURRENT_DESIGN_ID;
             
-            if (!localData || localData === "{}") {
-                document.getElementById('loadingText').innerText = "Mengunduh desain dari Cloud...";
+            // Logika: Tarik dari cloud JIKA data lokal kosong ATAU ID undangan berbeda
+            let shouldFetchFromCloud = !localData || localData === "{}" || isIdDifferent;
+
+            if (shouldFetchFromCloud) {
+                if (document.getElementById('loadingText')) {
+                    document.getElementById('loadingText').innerText = "Mengunduh desain dari Cloud...";
+                }
                 
                 const { data, error } = await supabaseClient
                     .from('invitation_designs')
@@ -1817,10 +1827,13 @@ if (bgs) {
                 if (data && data.design_data) {
                     designConfigMap = data.design_data;
                     localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
+                    localStorage.setItem('savedDesignId', CURRENT_DESIGN_ID); // Simpan ID saat ini ke local storage
                 } else {
                     designConfigMap = {}; // Reset jika kosong
+                    localStorage.setItem('savedDesignId', CURRENT_DESIGN_ID); // Tetap simpan ID agar tidak berulang kali fetch
                 }
             } else {
+                // Jika ID sama dan data lokal ada, gunakan data lokal agar cepat
                 designConfigMap = JSON.parse(localData);
             }
 
@@ -1832,13 +1845,13 @@ if (bgs) {
                 }
                 // 2. Hapus inline style (terutama warna & posisi mati) yang terkunci di dalam teks
                 if (designConfigMap[key].customText && typeof designConfigMap[key].customText === 'string') {
-    designConfigMap[key].customText = designConfigMap[key].customText
-        .replace(/ style\s*=\s*['"][^'"]*['"]/gi, '') // Hapus style dengan kutip tunggal/ganda
-        .replace(/text-brand-goldMain/gi, '')         // Hapus warna mati Tailwind
-        .replace(/text-brand-goldLight/gi, '')
-        .replace(/text-white/gi, '')
-        .replace(/text-gray-\d+/gi, '');
-}
+                    designConfigMap[key].customText = designConfigMap[key].customText
+                        .replace(/ style\s*=\s*['"][^'"]*['"]/gi, '') // Hapus style dengan kutip tunggal/ganda
+                        .replace(/text-brand-goldMain/gi, '')         // Hapus warna mati Tailwind
+                        .replace(/text-brand-goldLight/gi, '')
+                        .replace(/text-white/gi, '')
+                        .replace(/text-gray-\d+/gi, '');
+                }
             }
             localStorage.setItem('designConfigMap', JSON.stringify(designConfigMap));
             // ==========================================
@@ -2451,18 +2464,15 @@ designConfigMap['selected-theme'] = selectedTheme;
             }, 1000);
         }
 
-        // ==========================================
-        // FITUR: BUAT PROJEK BARU & BUKA PROJEK
-        // ==========================================
-       function buatProjekBaru() {
-    const konfirmasi = confirm('Anda yakin ingin membuat projek baru? Pastikan desain saat ini sudah di "Simpan ke Database" agar tidak hilang.');
-    if(konfirmasi) {
-        localStorage.removeItem('designConfigMap');
-        const newId = 'undangan-' + Date.now();
-        // TAMBAHKAN &mode=edit DI SINI
-        window.location.href = '?id=' + newId + '&mode=edit';
-    }
-}
+function buatProjekBaru() {
+            const konfirmasi = confirm('Anda yakin ingin membuat projek baru? Pastikan desain saat ini sudah di "Simpan ke Database" agar tidak hilang.');
+            if(konfirmasi) {
+                localStorage.removeItem('designConfigMap');
+                localStorage.removeItem('savedDesignId'); // Tambahkan baris ini
+                const newId = 'undangan-' + Date.now();
+                window.location.href = '?id=' + newId + '&mode=edit';
+            }
+        }
 
        async function tampilkanModalProjek() {
             const modal = document.getElementById('modalProjek');
@@ -2567,18 +2577,18 @@ designConfigMap['selected-theme'] = selectedTheme;
     }
 }
 
-        function pilihProjek(idYangDipilih) {
-    if(idYangDipilih === CURRENT_DESIGN_ID) {
-        tutupModalProjek();
-        return; 
-    }
-    const konfirmasi = confirm(`Buka projek "${idYangDipilih}"? Perubahan pada projek saat ini yang belum di-save ke Cloud akan hilang.`);
-    if(konfirmasi) {
-        localStorage.removeItem('designConfigMap');
-        // TAMBAHKAN &mode=edit DI SINI
-        window.location.href = '?id=' + idYangDipilih + '&mode=edit';
-    }
-}
+function pilihProjek(idYangDipilih) {
+            if(idYangDipilih === CURRENT_DESIGN_ID) {
+                tutupModalProjek();
+                return; 
+            }
+            const konfirmasi = confirm(`Buka projek "${idYangDipilih}"? Perubahan pada projek saat ini yang belum di-save ke Cloud akan hilang.`);
+            if(konfirmasi) {
+                localStorage.removeItem('designConfigMap');
+                localStorage.removeItem('savedDesignId'); // Tambahkan baris ini
+                window.location.href = '?id=' + idYangDipilih + '&mode=edit';
+            }
+        }
 
         // ==========================================
         // AUDIO PLAYER LOGIC
